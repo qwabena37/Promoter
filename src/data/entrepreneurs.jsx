@@ -8,16 +8,16 @@ const entrepreneurs = [
     "Gina is the CEO of GEE's Klodin. She creates modern African wear blending tradition with contemporary fashion.",
     location: "Taifa",
     gallery: [
-      "https://images.unsplash.com/photo-1520975916090-3105956dac38",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1521335629791-ce4aec67dd53",
+      "/Images/g1.jpeg",
+      "/Images/g2.jpeg",
+      "/Images/g3.jpeg",
     ],
 
-    video: "https://www.tiktok.com/@gees.klodin/video/7606837390157761813?lang=en",
+    video: "Videos/gv.mp4",
 
     socials: {
-      instagram: "#",
-      facebook: "#",
+      instagram: "https://www.instagram.com/geesklodin?igsh=d2VvM2plYmYyeG81",
+      facebook: "https://www.facebook.com/share/14XmTe4jwe8/?mibextid=wwXIfr",
       tiktok: "https://www.tiktok.com/@gees.klodin?lang=en",
       youtube: "#",
       website: "#",

@@ -59,24 +59,30 @@ export default function EntrepreneurModal({ person, onClose }) {
           <p className="mb-6 text-gray-700">{person.description}</p>
 
           {/* Gallery */}
-          <div className="grid grid-cols-3 gap-3 mb-6">
-            {person.gallery.map((img, i) => (
-              <img
-                key={i}
-                src={img}
-                onClick={() => setLightbox(img)}
-                className="rounded-lg h-32 object-cover cursor-pointer hover:scale-105 transition"
-              />
-            ))}
-          </div>
+<div className="grid grid-cols-3 gap-2 mb-6">
+  {person.gallery.map((img, i) => (
+    <div key={i} className="w-full aspect-square overflow-hidden rounded-lg">
+      <img
+        src={img}
+        onClick={() => setLightbox(img)}
+        className="w-full h-full object-cover cursor-pointer hover:scale-105 transition"
+      />
+    </div>
+  ))}
+</div>
 
-          {/* Video */}
-          <iframe
-            className="w-full h-64 mb-6 rounded-lg"
-            src={person.video}
-            title="Entrepreneur video"
-            allowFullScreen
-          />
+{/* Video */}
+<div className="w-full mb-6">
+  <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-lg">
+    <iframe
+      className="w-full h-full"
+      src={person.video} // make sure NO ?autoplay=1 in the URL
+      title="Entrepreneur video"
+      allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowFullScreen
+    />
+  </div>
+</div>
 
           {/* WhatsApp Button */}
           <a
