@@ -38,10 +38,10 @@ export default function Navbar() {
       {/* Navbar */}
       <nav className="bg-white shadow-md p-4">
         <div className="flex justify-between items-center">
-          <h1 className="font-bold text-xl">Entrepreneurs Hub</h1>
+          <h1 className="font-bold text-2xl">Entrepreneurs Hub</h1>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex space-x-6 mr-10">
+          <div className="hidden md:flex font-bold space-x-6 mr-10">
             <a href="/">Home</a>
             <a href="#">Vision</a>
             <a href="#">Explore</a>
