@@ -102,7 +102,7 @@ const entrepreneurs = [
   {
     id: 5,
     name: "Foster Bempong",
-    title: "Graphic Designer",
+    title: "Graphic Designer | Videographer",
     image: "/Images/Fost.jpeg",
     description:
     "Foster is a creative Graphic Designer and Videographer. He presently works with Tuff Media.",
@@ -252,7 +252,7 @@ const entrepreneurs = [
   {
     id: 11,
     name: "Daniel Safo Amankwah Jnr",
-    title: "Documentation Officer",
+    title: "Data Analyst | Documentation Officer",
     image: "/Images/Danny.jpeg",
     description:
     "Danny is currently the Documentatation Officer at Max Mobility, providing with fleet documentations ",
