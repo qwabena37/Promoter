@@ -31,7 +31,7 @@ export default function Navbar() {
   return (
     <>
       {/* Top Date & Time Bar */}
-      <div className="bg-gray-900 text-white text-center py-2 text-sm">
+      <div className="bg-black text-yellow-800 text-center py-2 text-sm">
         {dateTime}
       </div>
 
