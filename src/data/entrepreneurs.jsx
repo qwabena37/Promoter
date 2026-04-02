@@ -126,11 +126,11 @@ const entrepreneurs = [
   },
   {
     id: 6,
-    name: "Sandra Agyare",
-    title: "Fashion Designer",
-    image: "/Images/Sandy.jpeg",
+    name: "Obaa Yaa Dankyi",
+    title: "General Nurse",
+    image: "/Images/Obaa.jpeg",
     description:
-    "Akosua is a contemporary fashion designer based in Accra. She creates modern and stylish outfits for all occasions.",
+    "Obaa is a qualified, registered healthcare professional authorized to assess, diagnose and treat physical and mental illnesses.",
     location: "Taifa",
     gallery: [
       "https://images.unsplash.com/photo-1520975916090-3105956dac38",
@@ -149,6 +149,7 @@ const entrepreneurs = [
       whatsapp: "233549669135", // no + sign
     },
   },
+  
   {
     id: 7,
     name: "Raymond Asare Bona",
@@ -351,11 +352,11 @@ const entrepreneurs = [
   },
   {
     id: 13,
-    name: "Obaa Yaa Dankyi",
-    title: "Health Practitioner",
-    image: "/Images/Obaa.jpeg",
+    name: "Sandra Agyare",
+    title: "Fashion Designer",
+    image: "/Images/Sandy.jpeg",
     description:
-    "Obaa is a qualified, registered healthcare professional authorized to assess, diagnose and treat physical and mental illnesses.",
+    "Akosua is a contemporary fashion designer based in Accra. She creates modern and stylish outfits for all occasions.",
     location: "Taifa",
     gallery: [
       "https://images.unsplash.com/photo-1520975916090-3105956dac38",
@@ -374,6 +375,7 @@ const entrepreneurs = [
       whatsapp: "233549669135", // no + sign
     },
   },
+  
 ];
 
 export default entrepreneurs;
