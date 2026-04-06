@@ -303,13 +303,13 @@ const entrepreneurs = [
   {
     id: 13,
     name: "Abena Kwabuah Wiafe-Akenteng",
-    title: "BioChemist",
+    title: "Biochemist | CEO of TKG",
     image: "/Images/Abena.jpeg",
     description:
     "Abena is a profound Biochemist currently seeking a firm to work with, she presently owns and manages an Ushering Ring Team ",
     location: "Taifa",
     gallery: [
-      "https://images.unsplash.com/photo-1520975916090-3105956dac38",
+      "/Images/TKG.jpeg",
       "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
       "https://images.unsplash.com/photo-1521335629791-ce4aec67dd53",
     ],
