@@ -55,23 +55,8 @@ export default function Navbar() {
             <Link to="/">Home</Link>
             <Link to="#">Vision</Link>
             <Link to="#">Explore</Link>
-            <Link to="#">Contact</Link>
+            <Link to="/contact">Contact</Link>
 
-            {!token ? (
-              <Link
-                to="/auth"
-                className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700"
-              >
-                Login / Signup
-              </Link>
-            ) : (
-              <button
-                onClick={handleLogout}
-                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
-              >
-                Logout
-              </button>
-            )}
           </div>
 
           {/* Hamburger Icon */}
