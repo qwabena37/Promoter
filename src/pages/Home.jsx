@@ -9,7 +9,7 @@ import EntrepreneurModal from "../components/EntrepreneurModal";
 export default function Home() {
   const [selected, setSelected] = useState(null);
 
-  // Countdown states
+  // Counter states
   const [entreCount, setEntreCount] = useState(0);
   const [bizCount, setBizCount] = useState(0);
 
@@ -33,17 +33,26 @@ export default function Home() {
   }, []);
 
   return (
-    <div>
+    <div className="bg-slate-50 min-h-screen">
       <Navbar />
       <Hero />
 
-      {/* FEATURED */}
-      <section className="p-8 max-w-6xl mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-8">
-          Featured Entrepreneurs
-        </h2>
+      {/* FEATURED ENTREPRENEURS */}
+      <section className="py-16 px-8 max-w-6xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold text-slate-900">
+            Our Young Entrepreneurs
+          </h2>
 
-        <div className="grid md:grid-cols-3 gap-6">
+          <div className="w-24 h-1 bg-amber-400 mx-auto mt-4 rounded-full"></div>
+
+          <p className="mt-4 text-slate-600 max-w-2xl mx-auto">
+            Meet inspiring young business leaders who are creating impact,
+            driving innovation, and shaping the future through entrepreneurship.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8">
           {entrepreneurs.map((person) => (
             <EntrepreneurCard
               key={person.id}
@@ -58,21 +67,32 @@ export default function Home() {
         person={selected}
         onClose={() => setSelected(null)}
       />
-      {/* COUNTDOWN SECTION */}
-      <section className="bg-black text-white py-12 text-center">
-        <div className="max-w-4xl mx-auto flex justify-center gap-12">
-          <div>
-            <h2 className="text-4xl font-bold text-yellow-800">
-              {entreCount}+
-            </h2>
-            <p className="mt-2 text-lg">Young Entrepreneurs Exposed</p>
-          </div>
 
-          <div>
-            <h2 className="text-4xl font-bold text-yellow-800">
-              {bizCount}+
-            </h2>
-            <p className="mt-2 text-lg">Businesses Promoted</p>
+      {/* STATS SECTION */}
+      <section className="bg-gradient-to-r from-slate-900 via-blue-900 to-slate-800 text-white py-16">
+        <div className="max-w-5xl mx-auto text-center">
+          <h2 className="text-3xl font-bold mb-10">
+            Our Growing Impact
+          </h2>
+
+          <div className="flex flex-col md:flex-row justify-center gap-12">
+            <div>
+              <h3 className="text-5xl font-bold text-amber-400">
+                {entreCount}+
+              </h3>
+              <p className="mt-3 text-slate-200">
+                Young Entrepreneurs Exposed
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-5xl font-bold text-amber-400">
+                {bizCount}+
+              </h3>
+              <p className="mt-3 text-slate-200">
+                Businesses Promoted
+              </p>
+            </div>
           </div>
         </div>
       </section>

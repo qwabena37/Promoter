@@ -1,13 +1,10 @@
 import { useState, useEffect } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dateTime, setDateTime] = useState("");
-  const [token, setToken] = useState(localStorage.getItem("token"));
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     const updateTime = () => {
@@ -27,76 +24,265 @@ export default function Navbar() {
     };
 
     updateTime();
+
     const interval = setInterval(updateTime, 1000);
 
     return () => clearInterval(interval);
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    setToken(null);
-    navigate("/auth");
-  };
+  // Replace this number with your actual WhatsApp number
+  const whatsappNumber = "233279410426";
+
+  const whatsappMessage =
+    "Hello Young Entrepreneurs Hub, I would like to join the page.";
+
+  const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+    whatsappMessage
+  )}`;
 
   return (
     <>
       {/* Top Date & Time Bar */}
-      <div className="bg-black text-yellow-800 text-center py-2 text-sm">
+      <div className="bg-slate-900 text-slate-200 text-center py-2 text-sm">
         {dateTime}
       </div>
 
-      {/* Navbar */}
-      <nav className="bg-white shadow-md p-4">
-        <div className="flex justify-between items-center">
-          <h1 className="font-bold text-2xl">Entrepreneurs Hub</h1>
+      {/* Main Navbar */}
+      <nav className="bg-white shadow-lg sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+
+          {/* Logo */}
+          <Link
+            to="/"
+            className="text-2xl font-bold text-slate-900"
+          >
+            Young{" "}
+            <span className="text-amber-400">
+              Entrepreneurs
+            </span>{" "}
+            Hub
+          </Link>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex font-bold space-x-6 mr-10 items-center">
-            <Link to="/">Home</Link>
-            <Link to="#">Vision</Link>
-            <Link to="#">Explore</Link>
-            <Link to="/contact">Contact</Link>
+          <div className="hidden md:flex items-center space-x-8 font-medium">
 
+            <Link
+              to="/"
+              className="text-slate-700 hover:text-amber-400 transition"
+            >
+              Home
+            </Link>
+
+            <Link
+              to="/vision"
+              className="text-slate-700 hover:text-amber-400 transition"
+            >
+              Vision
+            </Link>
+
+            <Link
+              to="/explore"
+              className="text-slate-700 hover:text-amber-400 transition"
+            >
+              Explore
+            </Link>
+
+            <Link
+              to="/contact"
+              className="text-slate-700 hover:text-amber-400 transition"
+            >
+              Contact
+            </Link>
+
+            {/* Join Button */}
+            <a
+              href={whatsappLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-amber-400 hover:bg-amber-500 text-slate-900 px-5 py-2 rounded-lg font-semibold transition duration-300"
+            >
+              Join
+            </a>
           </div>
 
-          {/* Hamburger Icon */}
+          {/* Sleek Mobile Menu Button */}
           <button
-            className="md:hidden text-2xl"
+            className={`
+              md:hidden
+              relative
+              w-11
+              h-11
+              flex
+              items-center
+              justify-center
+              rounded-xl
+              border
+              border-slate-300/70
+              bg-slate-100/70
+              backdrop-blur-md
+              text-slate-800
+              shadow-sm
+              transition-all
+              duration-300
+              hover:bg-slate-200/80
+              hover:shadow-md
+              active:scale-95
+              ${menuOpen ? "bg-slate-200/80 rotate-0" : ""}
+            `}
             onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="Toggle menu"
+            aria-expanded={menuOpen}
           >
-            {menuOpen ? <FaTimes /> : <FaBars />}
+            <span
+              className={`
+                transition-all
+                duration-300
+                transform
+                ${menuOpen ? "rotate-0 scale-110" : ""}
+              `}
+            >
+              {menuOpen ? (
+                <FaTimes className="text-xl" />
+              ) : (
+                <FaBars className="text-xl" />
+              )}
+            </span>
           </button>
         </div>
 
         {/* Mobile Menu */}
-        {menuOpen && (
-          <div className="flex flex-col mt-4 space-y-4 md:hidden">
-            <Link to="/" onClick={() => setMenuOpen(false)}>Home</Link>
-            <Link to="#" onClick={() => setMenuOpen(false)}>Vision</Link>
-            <Link to="#" onClick={() => setMenuOpen(false)}>Explore</Link>
-            <Link to="#" onClick={() => setMenuOpen(false)}>Contact</Link>
+        <div
+          className={`
+            md:hidden
+            overflow-hidden
+            transition-all
+            duration-300
+            ease-in-out
+            ${
+              menuOpen
+                ? "max-h-[500px] opacity-100"
+                : "max-h-0 opacity-0"
+            }
+          `}
+        >
+          <div
+            className="
+              mx-4
+              mb-4
+              rounded-2xl
+              border
+              border-slate-200/70
+              bg-white/85
+              backdrop-blur-xl
+              shadow-xl
+              overflow-hidden
+            "
+          >
+            <div className="flex flex-col px-6 py-5 space-y-2">
 
-            {!token ? (
+              {/* Home */}
               <Link
-                to="/auth"
+                to="/"
                 onClick={() => setMenuOpen(false)}
-                className="bg-yellow-600 text-white px-4 py-2 rounded text-center"
+                className="
+                  px-4
+                  py-3
+                  rounded-lg
+                  text-slate-700
+                  font-medium
+                  hover:bg-slate-100/80
+                  hover:text-amber-500
+                  transition
+                  duration-200
+                "
               >
-                Login / Signup
+                Home
               </Link>
-            ) : (
-              <button
-                onClick={() => {
-                  handleLogout();
-                  setMenuOpen(false);
-                }}
-                className="bg-red-600 text-white px-4 py-2 rounded"
+
+              {/* Vision */}
+              <Link
+                to="/vision"
+                onClick={() => setMenuOpen(false)}
+                className="
+                  px-4
+                  py-3
+                  rounded-lg
+                  text-slate-700
+                  font-medium
+                  hover:bg-slate-100/80
+                  hover:text-amber-500
+                  transition
+                  duration-200
+                "
               >
-                Logout
-              </button>
-            )}
+                Vision
+              </Link>
+
+              {/* Explore */}
+              <Link
+                to="/explore"
+                onClick={() => setMenuOpen(false)}
+                className="
+                  px-4
+                  py-3
+                  rounded-lg
+                  text-slate-700
+                  font-medium
+                  hover:bg-slate-100/80
+                  hover:text-amber-500
+                  transition
+                  duration-200
+                "
+              >
+                Explore
+              </Link>
+
+              {/* Contact */}
+              <Link
+                to="/contact"
+                onClick={() => setMenuOpen(false)}
+                className="
+                  px-4
+                  py-3
+                  rounded-lg
+                  text-slate-700
+                  font-medium
+                  hover:bg-slate-100/80
+                  hover:text-amber-500
+                  transition
+                  duration-200
+                "
+              >
+                Contact
+              </Link>
+
+              {/* Mobile Join Button */}
+              <a
+                href={whatsappLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setMenuOpen(false)}
+                className="
+                  mt-2
+                  bg-amber-400
+                  hover:bg-amber-500
+                  text-slate-900
+                  px-4
+                  py-3
+                  rounded-xl
+                  text-center
+                  font-semibold
+                  shadow-sm
+                  hover:shadow-md
+                  transition
+                  duration-300
+                "
+              >
+                Join
+              </a>
+            </div>
           </div>
-        )}
+        </div>
       </nav>
     </>
   );
