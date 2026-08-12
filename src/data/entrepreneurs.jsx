@@ -351,7 +351,7 @@ const entrepreneurs = [
     },
   },
   {
-    id: 13,
+    id: 15,
     name: "Sandra Agyare",
     title: "Fashion Designer",
     image: "/Images/Sandy.jpeg",
