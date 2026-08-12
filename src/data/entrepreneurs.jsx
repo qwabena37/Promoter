@@ -317,12 +317,12 @@ const entrepreneurs = [
     video: "/Videos/Abena.mp4",
 
     socials: {
-      instagram: "#",
-      facebook: "#",
-      tiktok: "https://www.tiktok.com/@gees.klodin?lang=en",
+      instagram: "https://www.instagram.com/tkg_ushers_and_waiters?igsh=MWl1czJqZnlkY2s3YQ==",
+      facebook: "https://www.facebook.com/share/1Bc3isoG8x/?mibextid=wwXIfr#",
+      tiktok: "https://www.tiktok.com/@tkg.ushers.waiters?_r=1&_t=ZS-98opWxTJXLF",
       youtube: "#",
       website: "#",
-      whatsapp: "233549669135", // no + sign
+      whatsapp: "0256552403", // no + sign
     },
   },
   {
