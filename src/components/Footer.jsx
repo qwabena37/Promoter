@@ -84,6 +84,9 @@ export default function Footer() {
               <FaYoutube />
             </a>
           </div>
+          <h2 className="text-slate-300 text-sm mt-4">
+            Design by <span className="text-amber-400">JayTech </span>Solutions💻
+          </h2>
         </div>
 
       </div>
