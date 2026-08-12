@@ -306,7 +306,7 @@ const entrepreneurs = [
     title: "Biochemist | CEO of TKG",
     image: "/Images/Abena.jpeg",
     description:
-    "Abena is a profound Biochemist currently seeking a firm to work with, she presently owns and manages an Ushering Ring Team ",
+    "Abena Kwabuah is an event coordinator. She's also the founder and CEO of TKG Ushering and Waiting Services. The company seeks to enhace guests experiences, creating timeless and seamless event experiences for their clients and all guests",
     location: "Taifa",
     gallery: [
       "/Images/TKG2.jpeg",
