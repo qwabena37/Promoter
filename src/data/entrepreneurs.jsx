@@ -309,12 +309,12 @@ const entrepreneurs = [
     "Abena is a profound Biochemist currently seeking a firm to work with, she presently owns and manages an Ushering Ring Team ",
     location: "Taifa",
     gallery: [
+      "/Images/TKG2.jpeg",
+      "/Images/TKG1.jpeg",
       "/Images/TKG.jpeg",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1521335629791-ce4aec67dd53",
     ],
 
-    video: "https://www.tiktok.com/@gees.klodin/video/7606837390157761813?lang=en",
+    video: "/Videos/Abena.mp4",
 
     socials: {
       instagram: "#",
