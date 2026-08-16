@@ -2,5 +2,5 @@ import axios from "axios";
 
 export default axios.create({
   baseURL:
-    "https://your-render-backend.onrender.com/api/",
+    "https://promoter-backend-v2jk.onrender.com/api", // Use the backend URL from the .env file
 });
