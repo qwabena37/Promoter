@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FaBars, FaTimes } from "react-icons/fa";
+import { FaBars, FaTimes, FaUserShield } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 export default function Navbar() {
@@ -30,7 +30,7 @@ export default function Navbar() {
     return () => clearInterval(interval);
   }, []);
 
-  // Replace this number with your actual WhatsApp number
+  // WhatsApp number
   const whatsappNumber = "233279410426";
 
   const whatsappMessage =
@@ -42,19 +42,27 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Top Date & Time Bar */}
-      <div className="bg-slate-900 text-slate-200 text-center py-2 text-sm">
+      {/* =====================================================
+          TOP DATE & TIME BAR
+      ====================================================== */}
+      <div className="bg-slate-900 text-slate-200 text-center py-2 px-4 text-sm">
         {dateTime}
       </div>
 
-      {/* Main Navbar */}
+      {/* =====================================================
+          MAIN NAVBAR
+      ====================================================== */}
       <nav className="bg-white shadow-lg sticky top-0 z-50">
+
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
 
-          {/* Logo */}
+          {/* =================================================
+              LOGO
+          ================================================== */}
           <Link
             to="/"
-            className="text-2xl font-bold text-slate-900"
+            onClick={() => setMenuOpen(false)}
+            className="text-xl md:text-2xl font-bold text-slate-900"
           >
             Young{" "}
             <span className="text-amber-400">
@@ -63,9 +71,12 @@ export default function Navbar() {
             Hub
           </Link>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-8 font-medium">
+          {/* =================================================
+              DESKTOP MENU
+          ================================================== */}
+          <div className="hidden md:flex items-center space-x-6 lg:space-x-8 font-medium">
 
+            {/* Home */}
             <Link
               to="/"
               className="text-slate-700 hover:text-amber-400 transition"
@@ -73,6 +84,7 @@ export default function Navbar() {
               Home
             </Link>
 
+            {/* Vision */}
             <Link
               to="/vision"
               className="text-slate-700 hover:text-amber-400 transition"
@@ -80,6 +92,7 @@ export default function Navbar() {
               Vision
             </Link>
 
+            {/* Explore */}
             <Link
               to="/explore"
               className="text-slate-700 hover:text-amber-400 transition"
@@ -87,6 +100,7 @@ export default function Navbar() {
               Explore
             </Link>
 
+            {/* Contact */}
             <Link
               to="/contact"
               className="text-slate-700 hover:text-amber-400 transition"
@@ -94,18 +108,62 @@ export default function Navbar() {
               Contact
             </Link>
 
-            {/* Join Button */}
+            {/* =================================================
+                ADMIN DASHBOARD
+            ================================================== */}
+            <Link
+              to="/admin/login"
+              className="
+                flex
+                items-center
+                gap-2
+                border
+                border-slate-300
+                text-slate-700
+                px-4
+                py-2
+                rounded-lg
+                hover:border-slate-900
+                hover:bg-slate-900
+                hover:text-white
+                transition
+                duration-300
+              "
+            >
+              <FaUserShield className="text-sm" />
+
+              <span>
+                Admin
+              </span>
+            </Link>
+
+            {/* =================================================
+                JOIN BUTTON
+            ================================================== */}
             <a
               href={whatsappLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-amber-400 hover:bg-amber-500 text-slate-900 px-5 py-2 rounded-lg font-semibold transition duration-300"
+              className="
+                bg-amber-400
+                hover:bg-amber-500
+                text-slate-900
+                px-5
+                py-2
+                rounded-lg
+                font-semibold
+                transition
+                duration-300
+              "
             >
               Join
             </a>
+
           </div>
 
-          {/* Sleek Mobile Menu Button */}
+          {/* =================================================
+              MOBILE MENU BUTTON
+          ================================================== */}
           <button
             className={`
               md:hidden
@@ -127,20 +185,12 @@ export default function Navbar() {
               hover:bg-slate-200/80
               hover:shadow-md
               active:scale-95
-              ${menuOpen ? "bg-slate-200/80 rotate-0" : ""}
             `}
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle menu"
             aria-expanded={menuOpen}
           >
-            <span
-              className={`
-                transition-all
-                duration-300
-                transform
-                ${menuOpen ? "rotate-0 scale-110" : ""}
-              `}
-            >
+            <span className="transition-all duration-300">
               {menuOpen ? (
                 <FaTimes className="text-xl" />
               ) : (
@@ -150,7 +200,9 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Mobile Menu */}
+        {/* =====================================================
+            MOBILE MENU
+        ====================================================== */}
         <div
           className={`
             md:hidden
@@ -160,11 +212,12 @@ export default function Navbar() {
             ease-in-out
             ${
               menuOpen
-                ? "max-h-[500px] opacity-100"
+                ? "max-h-[650px] opacity-100"
                 : "max-h-0 opacity-0"
             }
           `}
         >
+
           <div
             className="
               mx-4
@@ -172,15 +225,18 @@ export default function Navbar() {
               rounded-2xl
               border
               border-slate-200/70
-              bg-white/85
+              bg-white/90
               backdrop-blur-xl
               shadow-xl
               overflow-hidden
             "
           >
+
             <div className="flex flex-col px-6 py-5 space-y-2">
 
-              {/* Home */}
+              {/* =================================================
+                  HOME
+              ================================================== */}
               <Link
                 to="/"
                 onClick={() => setMenuOpen(false)}
@@ -199,7 +255,9 @@ export default function Navbar() {
                 Home
               </Link>
 
-              {/* Vision */}
+              {/* =================================================
+                  VISION
+              ================================================== */}
               <Link
                 to="/vision"
                 onClick={() => setMenuOpen(false)}
@@ -218,7 +276,9 @@ export default function Navbar() {
                 Vision
               </Link>
 
-              {/* Explore */}
+              {/* =================================================
+                  EXPLORE
+              ================================================== */}
               <Link
                 to="/explore"
                 onClick={() => setMenuOpen(false)}
@@ -237,7 +297,9 @@ export default function Navbar() {
                 Explore
               </Link>
 
-              {/* Contact */}
+              {/* =================================================
+                  CONTACT
+              ================================================== */}
               <Link
                 to="/contact"
                 onClick={() => setMenuOpen(false)}
@@ -256,7 +318,42 @@ export default function Navbar() {
                 Contact
               </Link>
 
-              {/* Mobile Join Button */}
+              {/* =================================================
+                  ADMIN DASHBOARD
+              ================================================== */}
+              <Link
+                to="/admin/login"
+                onClick={() => setMenuOpen(false)}
+                className="
+                  mt-2
+                  flex
+                  items-center
+                  justify-center
+                  gap-2
+                  border
+                  border-slate-300
+                  text-slate-700
+                  px-4
+                  py-3
+                  rounded-xl
+                  font-semibold
+                  hover:bg-slate-900
+                  hover:text-white
+                  hover:border-slate-900
+                  transition
+                  duration-300
+                "
+              >
+                <FaUserShield />
+
+                <span>
+                  Admin Dashboard
+                </span>
+              </Link>
+
+              {/* =================================================
+                  MOBILE JOIN BUTTON
+              ================================================== */}
               <a
                 href={whatsappLink}
                 target="_blank"
@@ -280,9 +377,11 @@ export default function Navbar() {
               >
                 Join
               </a>
+
             </div>
           </div>
         </div>
+
       </nav>
     </>
   );

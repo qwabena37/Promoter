@@ -39,6 +39,24 @@ export default function Footer() {
               </a>
             </li>
           </ul>
+          {/* Admin */}
+          <div>
+            <h3 className="font-semibold text-lg mb-4">
+              Administration
+            </h3>
+
+            <p className="text-slate-400 mb-4">
+              Manage entrepreneur profiles, images,
+              videos and social media information.
+            </p>
+
+            <Link
+              to="/admin/login"
+              className="inline-block bg-amber-400 text-slate-900 font-semibold px-5 py-2.5 rounded-lg hover:bg-amber-300 transition"
+            >
+              Admin Dashboard
+            </Link>
+          </div>
         </div>
 
         {/* Socials */}

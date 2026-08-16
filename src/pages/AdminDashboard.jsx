@@ -1,0 +1,1091 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import {
+  FaUsers,
+  FaImages,
+  FaStar,
+  FaPlus,
+  FaSignOutAlt,
+  FaHome,
+  FaEdit,
+  FaTrash,
+  FaSearch,
+  FaTimes,
+} from "react-icons/fa";
+
+export default function AdminDashboard() {
+  const navigate = useNavigate();
+
+  const [entrepreneurs, setEntrepreneurs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const [search, setSearch] = useState("");
+
+  const [showForm, setShowForm] = useState(false);
+
+  const [editingEntrepreneur, setEditingEntrepreneur] =
+    useState(null);
+
+  const [formData, setFormData] = useState({
+    name: "",
+    title: "",
+    location: "",
+    description: "",
+    video: "",
+    whatsapp: "",
+    instagram: "",
+    facebook: "",
+    tiktok: "",
+    youtube: "",
+    website: "",
+    featured: false,
+    image: null,
+  });
+
+  const API_URL =
+    import.meta.env.VITE_API_URL ||
+    "http://127.0.0.1:8000/api";
+
+  const token = localStorage.getItem("access");
+
+  /* =========================================================
+     AXIOS CONFIG
+  ========================================================== */
+
+  const api = axios.create({
+    baseURL: API_URL,
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  /* =========================================================
+     LOAD ENTREPRENEURS
+  ========================================================== */
+
+  const loadEntrepreneurs = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await api.get("/entrepreneurs/");
+
+      setEntrepreneurs(response.data);
+
+    } catch (error) {
+      console.error(error);
+
+      if (error.response?.status === 401) {
+        handleLogout();
+        return;
+      }
+
+      setError(
+        "Unable to load entrepreneurs."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!token) {
+      navigate("/admin/login");
+      return;
+    }
+
+    loadEntrepreneurs();
+  }, []);
+
+  /* =========================================================
+     LOGOUT
+  ========================================================== */
+
+  const handleLogout = () => {
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
+
+    navigate("/admin/login");
+  };
+
+  /* =========================================================
+     FORM HANDLING
+  ========================================================== */
+
+  const handleChange = (e) => {
+    const { name, value, type, checked, files } =
+      e.target;
+
+    setFormData((previous) => ({
+      ...previous,
+      [name]:
+        type === "checkbox"
+          ? checked
+          : type === "file"
+          ? files[0]
+          : value,
+    }));
+  };
+
+  /* =========================================================
+     OPEN ADD FORM
+  ========================================================== */
+
+  const openAddForm = () => {
+    setEditingEntrepreneur(null);
+
+    setFormData({
+      name: "",
+      title: "",
+      location: "",
+      description: "",
+      video: "",
+      whatsapp: "",
+      instagram: "",
+      facebook: "",
+      tiktok: "",
+      youtube: "",
+      website: "",
+      featured: false,
+      image: null,
+    });
+
+    setShowForm(true);
+  };
+
+  /* =========================================================
+     EDIT ENTREPRENEUR
+  ========================================================== */
+
+  const openEditForm = (person) => {
+    setEditingEntrepreneur(person);
+
+    setFormData({
+      name: person.name || "",
+      title: person.title || "",
+      location: person.location || "",
+      description: person.description || "",
+      video: person.video || "",
+      whatsapp: person.whatsapp || "",
+      instagram: person.instagram || "",
+      facebook: person.facebook || "",
+      tiktok: person.tiktok || "",
+      youtube: person.youtube || "",
+      website: person.website || "",
+      featured: person.featured || false,
+      image: null,
+    });
+
+    setShowForm(true);
+  };
+
+  /* =========================================================
+     SAVE ENTREPRENEUR
+  ========================================================== */
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const data = new FormData();
+
+      data.append("name", formData.name);
+      data.append("title", formData.title);
+      data.append("location", formData.location);
+      data.append("description", formData.description);
+      data.append("video", formData.video);
+
+      data.append("whatsapp", formData.whatsapp);
+      data.append("instagram", formData.instagram);
+      data.append("facebook", formData.facebook);
+      data.append("tiktok", formData.tiktok);
+      data.append("youtube", formData.youtube);
+      data.append("website", formData.website);
+
+      data.append(
+        "featured",
+        formData.featured
+      );
+
+      if (formData.image) {
+        data.append(
+          "image",
+          formData.image
+        );
+      }
+
+      if (editingEntrepreneur) {
+
+        await api.put(
+          `/entrepreneurs/${editingEntrepreneur.id}/`,
+          data,
+          {
+            headers: {
+              "Content-Type":
+                "multipart/form-data",
+            },
+          }
+        );
+
+      } else {
+
+        await api.post(
+          "/entrepreneurs/",
+          data,
+          {
+            headers: {
+              "Content-Type":
+                "multipart/form-data",
+            },
+          }
+        );
+      }
+
+      setShowForm(false);
+
+      setEditingEntrepreneur(null);
+
+      await loadEntrepreneurs();
+
+    } catch (error) {
+      console.error(error);
+
+      if (error.response?.status === 401) {
+        handleLogout();
+        return;
+      }
+
+      alert(
+        "Unable to save entrepreneur."
+      );
+    }
+  };
+
+  /* =========================================================
+     DELETE
+  ========================================================== */
+
+  const handleDelete = async (id) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this entrepreneur?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await api.delete(
+        `/entrepreneurs/${id}/`
+      );
+
+      await loadEntrepreneurs();
+
+    } catch (error) {
+      console.error(error);
+
+      if (error.response?.status === 401) {
+        handleLogout();
+        return;
+      }
+
+      alert(
+        "Unable to delete entrepreneur."
+      );
+    }
+  };
+
+  /* =========================================================
+     SEARCH
+  ========================================================== */
+
+  const filteredEntrepreneurs =
+    entrepreneurs.filter((person) => {
+      const query =
+        search.toLowerCase();
+
+      return (
+        person.name
+          ?.toLowerCase()
+          .includes(query) ||
+        person.title
+          ?.toLowerCase()
+          .includes(query) ||
+        person.location
+          ?.toLowerCase()
+          .includes(query)
+      );
+    });
+
+  /* =========================================================
+     STATISTICS
+  ========================================================== */
+
+  const totalEntrepreneurs =
+    entrepreneurs.length;
+
+  const featuredCount =
+    entrepreneurs.filter(
+      (person) => person.featured
+    ).length;
+
+  const totalWorks =
+    entrepreneurs.reduce(
+      (total, person) =>
+        total +
+        (person.gallery?.length || 0),
+      0
+    );
+
+  /* =========================================================
+     RENDER
+  ========================================================== */
+
+  return (
+    <div className="min-h-screen bg-slate-100">
+
+      {/* =====================================================
+          HEADER
+      ====================================================== */}
+
+      <header className="bg-slate-900 text-white shadow-lg">
+
+        <div className="max-w-7xl mx-auto px-6 py-5">
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+
+            <div>
+
+              <h1 className="text-2xl font-bold">
+                Admin Dashboard
+              </h1>
+
+              <p className="text-slate-400 text-sm mt-1">
+                Young Entrepreneurs Hub
+              </p>
+
+            </div>
+
+            <div className="flex items-center gap-3">
+
+              <button
+                onClick={() =>
+                  navigate("/")
+                }
+                className="
+                  flex
+                  items-center
+                  gap-2
+                  px-4
+                  py-2
+                  rounded-lg
+                  border
+                  border-slate-600
+                  hover:bg-slate-800
+                  transition
+                "
+              >
+                <FaHome />
+                Website
+              </button>
+
+              <button
+                onClick={handleLogout}
+                className="
+                  flex
+                  items-center
+                  gap-2
+                  px-4
+                  py-2
+                  rounded-lg
+                  bg-red-500
+                  hover:bg-red-600
+                  transition
+                "
+              >
+                <FaSignOutAlt />
+                Logout
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </header>
+
+      {/* =====================================================
+          CONTENT
+      ====================================================== */}
+
+      <main className="max-w-7xl mx-auto px-6 py-10">
+
+        {/* ===================================================
+            STATISTICS
+        ==================================================== */}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+
+          {/* Entrepreneurs */}
+
+          <div className="bg-white rounded-xl shadow-sm p-6">
+
+            <div className="flex items-center justify-between">
+
+              <div>
+
+                <p className="text-slate-500 text-sm">
+                  Entrepreneurs
+                </p>
+
+                <h2 className="text-3xl font-bold text-slate-900 mt-2">
+                  {totalEntrepreneurs}
+                </h2>
+
+              </div>
+
+              <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+
+                <FaUsers />
+
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* Work Images */}
+
+          <div className="bg-white rounded-xl shadow-sm p-6">
+
+            <div className="flex items-center justify-between">
+
+              <div>
+
+                <p className="text-slate-500 text-sm">
+                  Work Images
+                </p>
+
+                <h2 className="text-3xl font-bold text-slate-900 mt-2">
+                  {totalWorks}
+                </h2>
+
+              </div>
+
+              <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">
+
+                <FaImages />
+
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* Featured */}
+
+          <div className="bg-white rounded-xl shadow-sm p-6">
+
+            <div className="flex items-center justify-between">
+
+              <div>
+
+                <p className="text-slate-500 text-sm">
+                  Featured
+                </p>
+
+                <h2 className="text-3xl font-bold text-slate-900 mt-2">
+                  {featuredCount}
+                </h2>
+
+              </div>
+
+              <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-500 flex items-center justify-center">
+
+                <FaStar />
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* ===================================================
+            ENTREPRENEURS HEADER
+        ==================================================== */}
+
+        <div className="bg-white rounded-xl shadow-sm">
+
+          <div className="p-6 border-b border-slate-200">
+
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+
+              <div>
+
+                <h2 className="text-xl font-bold text-slate-900">
+                  Entrepreneurs
+                </h2>
+
+                <p className="text-slate-500 text-sm mt-1">
+                  Manage entrepreneur profiles and businesses.
+                </p>
+
+              </div>
+
+              <button
+                onClick={openAddForm}
+                className="
+                  flex
+                  items-center
+                  justify-center
+                  gap-2
+                  bg-amber-400
+                  hover:bg-amber-500
+                  text-slate-900
+                  px-5
+                  py-3
+                  rounded-lg
+                  font-semibold
+                  transition
+                "
+              >
+                <FaPlus />
+                Add Entrepreneur
+              </button>
+
+            </div>
+
+          </div>
+
+          {/* Search */}
+
+          <div className="p-6">
+
+            <div className="relative">
+
+              <FaSearch
+                className="
+                  absolute
+                  left-4
+                  top-1/2
+                  -translate-y-1/2
+                  text-slate-400
+                "
+              />
+
+              <input
+                type="text"
+                value={search}
+                onChange={(e) =>
+                  setSearch(e.target.value)
+                }
+                placeholder="Search entrepreneurs..."
+                className="
+                  w-full
+                  pl-11
+                  pr-4
+                  py-3
+                  border
+                  border-slate-300
+                  rounded-lg
+                  outline-none
+                  focus:border-amber-400
+                  focus:ring-2
+                  focus:ring-amber-100
+                "
+              />
+
+            </div>
+
+          </div>
+
+          {/* =================================================
+              TABLE
+          ================================================== */}
+
+          {loading ? (
+
+            <div className="p-10 text-center text-slate-500">
+              Loading entrepreneurs...
+            </div>
+
+          ) : error ? (
+
+            <div className="p-10 text-center text-red-500">
+              {error}
+            </div>
+
+          ) : filteredEntrepreneurs.length === 0 ? (
+
+            <div className="p-10 text-center text-slate-500">
+              No entrepreneurs found.
+            </div>
+
+          ) : (
+
+            <div className="overflow-x-auto">
+
+              <table className="w-full">
+
+                <thead className="bg-slate-50">
+
+                  <tr>
+
+                    <th className="text-left px-6 py-4 text-sm font-semibold text-slate-600">
+                      Entrepreneur
+                    </th>
+
+                    <th className="text-left px-6 py-4 text-sm font-semibold text-slate-600">
+                      Title
+                    </th>
+
+                    <th className="text-left px-6 py-4 text-sm font-semibold text-slate-600">
+                      Location
+                    </th>
+
+                    <th className="text-left px-6 py-4 text-sm font-semibold text-slate-600">
+                      Featured
+                    </th>
+
+                    <th className="text-right px-6 py-4 text-sm font-semibold text-slate-600">
+                      Actions
+                    </th>
+
+                  </tr>
+
+                </thead>
+
+                <tbody className="divide-y divide-slate-100">
+
+                  {filteredEntrepreneurs.map(
+                    (person) => (
+
+                      <tr
+                        key={person.id}
+                        className="hover:bg-slate-50"
+                      >
+
+                        <td className="px-6 py-4">
+
+                          <div className="flex items-center gap-3">
+
+                            <img
+                              src={person.image}
+                              alt={person.name}
+                              className="
+                                w-12
+                                h-12
+                                rounded-lg
+                                object-cover
+                                bg-slate-100
+                              "
+                            />
+
+                            <div>
+
+                              <p className="font-semibold text-slate-900">
+                                {person.name}
+                              </p>
+
+                            </div>
+
+                          </div>
+
+                        </td>
+
+                        <td className="px-6 py-4 text-slate-600">
+                          {person.title}
+                        </td>
+
+                        <td className="px-6 py-4 text-slate-600">
+                          {person.location}
+                        </td>
+
+                        <td className="px-6 py-4">
+
+                          {person.featured ? (
+
+                            <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-semibold">
+                              <FaStar />
+                              Featured
+                            </span>
+
+                          ) : (
+
+                            <span className="text-slate-400 text-sm">
+                              No
+                            </span>
+
+                          )}
+
+                        </td>
+
+                        <td className="px-6 py-4">
+
+                          <div className="flex justify-end gap-2">
+
+                            <button
+                              onClick={() =>
+                                openEditForm(
+                                  person
+                                )
+                              }
+                              className="
+                                p-2
+                                rounded-lg
+                                bg-blue-50
+                                text-blue-600
+                                hover:bg-blue-100
+                              "
+                              title="Edit"
+                            >
+                              <FaEdit />
+                            </button>
+
+                            <button
+                              onClick={() =>
+                                handleDelete(
+                                  person.id
+                                )
+                              }
+                              className="
+                                p-2
+                                rounded-lg
+                                bg-red-50
+                                text-red-600
+                                hover:bg-red-100
+                              "
+                              title="Delete"
+                            >
+                              <FaTrash />
+                            </button>
+
+                          </div>
+
+                        </td>
+
+                      </tr>
+
+                    )
+                  )}
+
+                </tbody>
+
+              </table>
+
+            </div>
+
+          )}
+
+        </div>
+
+      </main>
+
+      {/* =====================================================
+          ADD / EDIT MODAL
+      ====================================================== */}
+
+      {showForm && (
+
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+
+          <div className="
+            bg-white
+            w-full
+            max-w-3xl
+            max-h-[90vh]
+            overflow-y-auto
+            rounded-2xl
+            shadow-2xl
+          ">
+
+            {/* Modal Header */}
+
+            <div className="sticky top-0 bg-white border-b border-slate-200 px-6 py-5 flex justify-between items-center z-10">
+
+              <div>
+
+                <h2 className="text-xl font-bold">
+                  {editingEntrepreneur
+                    ? "Edit Entrepreneur"
+                    : "Add Entrepreneur"}
+                </h2>
+
+                <p className="text-sm text-slate-500 mt-1">
+                  Enter entrepreneur information below.
+                </p>
+
+              </div>
+
+              <button
+                onClick={() =>
+                  setShowForm(false)
+                }
+                className="
+                  w-9
+                  h-9
+                  rounded-lg
+                  bg-slate-100
+                  hover:bg-slate-200
+                  flex
+                  items-center
+                  justify-center
+                "
+              >
+                <FaTimes />
+              </button>
+
+            </div>
+
+            {/* Form */}
+
+            <form
+              onSubmit={handleSubmit}
+              className="p-6 space-y-6"
+            >
+
+              {/* Basic Information */}
+
+              <div>
+
+                <h3 className="font-bold text-slate-900 mb-4">
+                  Basic Information
+                </h3>
+
+                <div className="grid md:grid-cols-2 gap-4">
+
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="Entrepreneur name"
+                    required
+                    className="input-field"
+                  />
+
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    placeholder="Business / Job title"
+                    required
+                    className="input-field"
+                  />
+
+                  <input
+                    type="text"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleChange}
+                    placeholder="Location"
+                    className="input-field"
+                  />
+
+                </div>
+
+              </div>
+
+              {/* Description */}
+
+              <div>
+
+                <label className="block font-semibold text-sm mb-2">
+                  Description
+                </label>
+
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows="5"
+                  placeholder="Tell us about this entrepreneur..."
+                  className="input-field resize-none"
+                />
+
+              </div>
+
+              {/* Profile Image */}
+
+              <div>
+
+                <label className="block font-semibold text-sm mb-2">
+                  Profile Picture
+                </label>
+
+                <input
+                  type="file"
+                  name="image"
+                  accept="image/*"
+                  onChange={handleChange}
+                  className="
+                    w-full
+                    border
+                    border-slate-300
+                    rounded-lg
+                    p-3
+                  "
+                />
+
+              </div>
+
+              {/* Video */}
+
+              <div>
+
+                <label className="block font-semibold text-sm mb-2">
+                  Video URL
+                </label>
+
+                <input
+                  type="url"
+                  name="video"
+                  value={formData.video}
+                  onChange={handleChange}
+                  placeholder="https://www.youtube.com/embed/..."
+                  className="input-field"
+                />
+
+              </div>
+
+              {/* Social Media */}
+
+              <div>
+
+                <h3 className="font-bold text-slate-900 mb-4">
+                  Social Media
+                </h3>
+
+                <div className="grid md:grid-cols-2 gap-4">
+
+                  <input
+                    type="text"
+                    name="whatsapp"
+                    value={formData.whatsapp}
+                    onChange={handleChange}
+                    placeholder="WhatsApp number"
+                    className="input-field"
+                  />
+
+                  <input
+                    type="url"
+                    name="instagram"
+                    value={formData.instagram}
+                    onChange={handleChange}
+                    placeholder="Instagram URL"
+                    className="input-field"
+                  />
+
+                  <input
+                    type="url"
+                    name="facebook"
+                    value={formData.facebook}
+                    onChange={handleChange}
+                    placeholder="Facebook URL"
+                    className="input-field"
+                  />
+
+                  <input
+                    type="url"
+                    name="tiktok"
+                    value={formData.tiktok}
+                    onChange={handleChange}
+                    placeholder="TikTok URL"
+                    className="input-field"
+                  />
+
+                  <input
+                    type="url"
+                    name="youtube"
+                    value={formData.youtube}
+                    onChange={handleChange}
+                    placeholder="YouTube URL"
+                    className="input-field"
+                  />
+
+                  <input
+                    type="url"
+                    name="website"
+                    value={formData.website}
+                    onChange={handleChange}
+                    placeholder="Website URL"
+                    className="input-field"
+                  />
+
+                </div>
+
+              </div>
+
+              {/* Featured */}
+
+              <label className="flex items-center gap-3 cursor-pointer">
+
+                <input
+                  type="checkbox"
+                  name="featured"
+                  checked={formData.featured}
+                  onChange={handleChange}
+                  className="w-5 h-5 accent-amber-400"
+                />
+
+                <span className="font-medium">
+                  Feature this entrepreneur
+                </span>
+
+              </label>
+
+              {/* Buttons */}
+
+              <div className="flex justify-end gap-3 pt-4 border-t">
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setShowForm(false)
+                  }
+                  className="
+                    px-5
+                    py-3
+                    rounded-lg
+                    border
+                    border-slate-300
+                    hover:bg-slate-100
+                  "
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="
+                    px-6
+                    py-3
+                    rounded-lg
+                    bg-amber-400
+                    hover:bg-amber-500
+                    text-slate-900
+                    font-bold
+                  "
+                >
+                  {editingEntrepreneur
+                    ? "Update Entrepreneur"
+                    : "Save Entrepreneur"}
+                </button>
+
+              </div>
+
+            </form>
+
+          </div>
+
+        </div>
+
+      )}
+
+    </div>
+  );
+}
