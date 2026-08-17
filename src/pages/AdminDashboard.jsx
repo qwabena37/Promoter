@@ -13,6 +13,7 @@ import {
   FaTrash,
   FaSearch,
   FaTimes,
+  FaImage,
 } from "react-icons/fa";
 
 export default function AdminDashboard() {
@@ -26,7 +27,8 @@ export default function AdminDashboard() {
   const [search, setSearch] = useState("");
 
   const [showForm, setShowForm] = useState(false);
-  const [editingEntrepreneur, setEditingEntrepreneur] = useState(null);
+  const [editingEntrepreneur, setEditingEntrepreneur] =
+    useState(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -41,7 +43,12 @@ export default function AdminDashboard() {
     youtube: "",
     website: "",
     featured: false,
-    image: null,
+
+    // Images
+    profile_image: null,
+    work_image_1: null,
+    work_image_2: null,
+    work_image_3: null,
   });
 
   /* =========================================================
@@ -52,7 +59,9 @@ export default function AdminDashboard() {
     const token = localStorage.getItem("access");
 
     if (!token) {
-      navigate("/admin/login", { replace: true });
+      navigate("/admin/login", {
+        replace: true,
+      });
       return;
     }
 
@@ -68,11 +77,12 @@ export default function AdminDashboard() {
       setLoading(true);
       setError("");
 
-      console.log("Fetching entrepreneurs...");
-
       const response = await api.get("/entrepreneurs/");
 
-      console.log("Entrepreneurs API response:", response.data);
+      console.log(
+        "Entrepreneurs API response:",
+        response.data
+      );
 
       const data = Array.isArray(response.data)
         ? response.data
@@ -80,16 +90,9 @@ export default function AdminDashboard() {
 
       setEntrepreneurs(data);
     } catch (error) {
-      console.error("Error loading entrepreneurs:", error);
-
       console.error(
-        "Status:",
-        error.response?.status
-      );
-
-      console.error(
-        "Backend response:",
-        error.response?.data
+        "Error loading entrepreneurs:",
+        error
       );
 
       if (error.response?.status === 401) {
@@ -134,6 +137,7 @@ export default function AdminDashboard() {
 
     setFormData((previous) => ({
       ...previous,
+
       [name]:
         type === "checkbox"
           ? checked
@@ -161,7 +165,11 @@ export default function AdminDashboard() {
       youtube: "",
       website: "",
       featured: false,
-      image: null,
+
+      profile_image: null,
+      work_image_1: null,
+      work_image_2: null,
+      work_image_3: null,
     });
   };
 
@@ -195,7 +203,13 @@ export default function AdminDashboard() {
       youtube: person.youtube || "",
       website: person.website || "",
       featured: Boolean(person.featured),
-      image: null,
+
+      // New files are selected only if the admin wants
+      // to replace existing images.
+      profile_image: null,
+      work_image_1: null,
+      work_image_2: null,
+      work_image_3: null,
     });
 
     setShowForm(true);
@@ -218,341 +232,395 @@ export default function AdminDashboard() {
   ========================================================== */
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (saving) return;
+    if (saving) return;
 
-  setSaving(true);
-  setError("");
+    setSaving(true);
+    setError("");
 
-  try {
-    console.log("================================");
-    console.log("SAVING ENTREPRENEUR");
-    console.log("Edit mode:", Boolean(editingEntrepreneur));
-    console.log("================================");
+    try {
+      const form = new FormData();
 
-    const form = new FormData();
+      /* =====================================================
+         BASIC INFORMATION
+      ====================================================== */
 
-    // =====================================================
-    // BASIC INFORMATION
-    // =====================================================
+      form.append(
+        "name",
+        formData.name.trim()
+      );
 
-    form.append("name", formData.name.trim());
-    form.append("title", formData.title.trim());
-    form.append("location", formData.location.trim());
-    form.append("description", formData.description.trim());
+      form.append(
+        "title",
+        formData.title.trim()
+      );
 
-    // =====================================================
-    // VIDEO
-    // =====================================================
+      form.append(
+        "location",
+        formData.location.trim()
+      );
 
-    if (formData.video?.trim()) {
-      form.append("video", formData.video.trim());
-    }
+      form.append(
+        "description",
+        formData.description.trim()
+      );
 
-    // =====================================================
-    // SOCIAL MEDIA
-    // =====================================================
+      /* =====================================================
+         VIDEO
+      ====================================================== */
 
-    if (formData.whatsapp?.trim()) {
-      form.append("whatsapp", formData.whatsapp.trim());
-    }
-
-    if (formData.instagram?.trim()) {
-      form.append("instagram", formData.instagram.trim());
-    }
-
-    if (formData.facebook?.trim()) {
-      form.append("facebook", formData.facebook.trim());
-    }
-
-    if (formData.tiktok?.trim()) {
-      form.append("tiktok", formData.tiktok.trim());
-    }
-
-    if (formData.youtube?.trim()) {
-      form.append("youtube", formData.youtube.trim());
-    }
-
-    if (formData.website?.trim()) {
-      form.append("website", formData.website.trim());
-    }
-
-    // =====================================================
-    // FEATURED
-    // =====================================================
-
-    form.append(
-      "featured",
-      formData.featured ? "true" : "false"
-    );
-
-    // =====================================================
-    // IMAGE
-    // =====================================================
-
-    if (formData.image instanceof File) {
-      console.log("Uploading image:");
-      console.log("Name:", formData.image.name);
-      console.log("Type:", formData.image.type);
-      console.log("Size:", formData.image.size);
-
-      form.append("image", formData.image);
-    }
-
-    // =====================================================
-    // DEBUG FORMDATA
-    // =====================================================
-
-    console.log("================================");
-    console.log("FORM DATA");
-    console.log("================================");
-
-    for (const [key, value] of form.entries()) {
-      if (value instanceof File) {
-        console.log(
-          `${key} => FILE:`,
-          value.name,
-          value.type,
-          value.size
+      if (formData.video?.trim()) {
+        form.append(
+          "video",
+          formData.video.trim()
         );
-      } else {
-        console.log(`${key} =>`, value);
       }
-    }
 
-    // =====================================================
-    // AXIOS CONFIG
-    // =====================================================
-    //
-    // IMPORTANT:
-    //
-    // Do NOT manually set:
-    //
-    // Content-Type: multipart/form-data
-    //
-    // The browser/Axios must create the boundary automatically.
-    //
-    // We remove the JSON Content-Type inherited from api.js.
-    // =====================================================
+      /* =====================================================
+         SOCIAL MEDIA
+      ====================================================== */
 
-    const config = {
-      headers: {
-        "Content-Type": undefined,
-      },
-    };
+      if (formData.whatsapp?.trim()) {
+        form.append(
+          "whatsapp",
+          formData.whatsapp.trim()
+        );
+      }
 
-    let response;
+      if (formData.instagram?.trim()) {
+        form.append(
+          "instagram",
+          formData.instagram.trim()
+        );
+      }
 
-    // =====================================================
-    // UPDATE
-    // =====================================================
+      if (formData.facebook?.trim()) {
+        form.append(
+          "facebook",
+          formData.facebook.trim()
+        );
+      }
 
-    if (editingEntrepreneur) {
-      console.log(
-        "Updating entrepreneur:",
-        editingEntrepreneur.id
+      if (formData.tiktok?.trim()) {
+        form.append(
+          "tiktok",
+          formData.tiktok.trim()
+        );
+      }
+
+      if (formData.youtube?.trim()) {
+        form.append(
+          "youtube",
+          formData.youtube.trim()
+        );
+      }
+
+      if (formData.website?.trim()) {
+        form.append(
+          "website",
+          formData.website.trim()
+        );
+      }
+
+      /* =====================================================
+         FEATURED
+      ====================================================== */
+
+      form.append(
+        "featured",
+        formData.featured ? "true" : "false"
       );
 
-      response = await api.patch(
-        `/entrepreneurs/${editingEntrepreneur.id}/`,
-        form,
-        config
-      );
+      /* =====================================================
+         PROFILE IMAGE
+      ====================================================== */
 
-      console.log(
-        "Entrepreneur updated successfully:",
-        response.data
-      );
-    }
+      if (formData.image instanceof File) {
+  console.log(
+    "Uploading profile image:",
+    formData.image.name
+  );
 
-    // =====================================================
-    // CREATE
-    // =====================================================
+  form.append(
+    "profile_image",
+    formData.image
+  );
+}
 
-    else {
-      console.log("Creating entrepreneur...");
-
-      response = await api.post(
-        "/entrepreneurs/",
-        form,
-        config
-      );
-
-      console.log(
-        "Entrepreneur created successfully:",
-        response.data
-      );
-    }
-
-    // =====================================================
-    // SUCCESS
-    // =====================================================
-
-    alert(
-      editingEntrepreneur
-        ? "Entrepreneur updated successfully."
-        : "Entrepreneur added successfully."
-    );
-
-    closeForm();
-
-    await loadEntrepreneurs();
-
-  } catch (error) {
-    console.error("================================");
-    console.error("SAVE ENTREPRENEUR ERROR");
-    console.error("================================");
-
-    console.error("Error:", error);
-
-    console.error(
-      "Status:",
-      error.response?.status
-    );
-
-    console.error(
-      "Backend response:",
-      error.response?.data
-    );
-
-    console.error(
-      "Request:",
-      error.config
-    );
-
-    // =====================================================
-    // 401 - UNAUTHORIZED
-    // =====================================================
-
-    if (error.response?.status === 401) {
-      console.error(
-        "401 Unauthorized - token may be invalid or expired."
-      );
-
-      handleLogout();
-      return;
-    }
-
-    // =====================================================
-    // 403 - FORBIDDEN
-    // =====================================================
-
-    if (error.response?.status === 403) {
-      alert(
-        "You are logged in, but your account does not have permission to create or edit entrepreneurs."
-      );
-
-      return;
-    }
-
-    // =====================================================
-    // 400 - VALIDATION ERROR
-    // =====================================================
-
-    if (error.response?.status === 400) {
-      const backendErrors =
-        error.response?.data;
-
-      console.error(
-        "Backend validation errors:",
-        backendErrors
-      );
-
-      let message =
-        "Please check the information entered.";
+      /* =====================================================
+         WORK IMAGE 1
+      ====================================================== */
 
       if (
-        backendErrors &&
-        typeof backendErrors === "object"
+        formData.work_image_1 instanceof File
       ) {
-        const messages = Object.entries(
-          backendErrors
-        )
-          .map(([field, errors]) => {
-            const errorMessage =
-              Array.isArray(errors)
-                ? errors.join(", ")
-                : String(errors);
+        console.log(
+          "Uploading work image 1:",
+          formData.work_image_1.name
+        );
 
-            return `${field}: ${errorMessage}`;
-          })
-          .join("\n");
+        form.append(
+          "work_image_1",
+          formData.work_image_1
+        );
+      }
 
-        if (messages) {
-          message = messages;
+      /* =====================================================
+         WORK IMAGE 2
+      ====================================================== */
+
+      if (
+        formData.work_image_2 instanceof File
+      ) {
+        console.log(
+          "Uploading work image 2:",
+          formData.work_image_2.name
+        );
+
+        form.append(
+          "work_image_2",
+          formData.work_image_2
+        );
+      }
+
+      /* =====================================================
+         WORK IMAGE 3
+      ====================================================== */
+
+      if (
+        formData.work_image_3 instanceof File
+      ) {
+        console.log(
+          "Uploading work image 3:",
+          formData.work_image_3.name
+        );
+
+        form.append(
+          "work_image_3",
+          formData.work_image_3
+        );
+      }
+
+      /* =====================================================
+         DEBUG FORMDATA
+      ====================================================== */
+
+      console.log(
+        "========== FORM DATA =========="
+      );
+
+      for (const [key, value] of form.entries()) {
+        if (value instanceof File) {
+          console.log(
+            `${key}:`,
+            value.name,
+            value.type,
+            value.size
+          );
+        } else {
+          console.log(
+            `${key}:`,
+            value
+          );
         }
       }
 
-      alert(message);
+      /* =====================================================
+         SAVE
+      ====================================================== */
 
-      return;
-    }
+      let response;
 
-    // =====================================================
-    // 413 - FILE TOO LARGE
-    // =====================================================
+      if (editingEntrepreneur) {
+        response = await api.patch(
+          `/entrepreneurs/${editingEntrepreneur.id}/`,
+          form
+        );
 
-    if (error.response?.status === 413) {
+        console.log(
+          "Updated entrepreneur:",
+          response.data
+        );
+      } else {
+        response = await api.post(
+          "/entrepreneurs/",
+          form
+        );
+
+        console.log(
+          "Created entrepreneur:",
+          response.data
+        );
+      }
+
+      /* =====================================================
+         SUCCESS
+      ====================================================== */
+
       alert(
-        "The image is too large. Please choose a smaller image."
+        editingEntrepreneur
+          ? "Entrepreneur updated successfully."
+          : "Entrepreneur added successfully."
       );
 
-      return;
-    }
+      closeForm();
 
-    // =====================================================
-    // 415 - UNSUPPORTED MEDIA TYPE
-    // =====================================================
+      await loadEntrepreneurs();
 
-    if (error.response?.status === 415) {
-      alert(
-        "The server rejected the uploaded data format. Please check the API's multipart/form-data configuration."
+    } catch (error) {
+      console.error(
+        "SAVE ENTREPRENEUR ERROR:",
+        error
       );
 
-      return;
-    }
-
-    // =====================================================
-    // 500 - SERVER ERROR
-    // =====================================================
-
-    if (error.response?.status >= 500) {
-      alert(
-        "The server encountered an error while saving the entrepreneur. Please check the Render backend logs."
+      console.error(
+        "Status:",
+        error.response?.status
       );
 
-      return;
-    }
-
-    // =====================================================
-    // NETWORK ERROR
-    // =====================================================
-
-    if (
-      error.request &&
-      !error.response
-    ) {
-      alert(
-        "The backend server could not be reached. Please check your internet connection and backend deployment."
+      console.error(
+        "Backend response:",
+        error.response?.data
       );
 
-      return;
+      /* =====================================================
+         401
+      ====================================================== */
+
+      if (
+        error.response?.status === 401
+      ) {
+        handleLogout();
+        return;
+      }
+
+      /* =====================================================
+         403
+      ====================================================== */
+
+      if (
+        error.response?.status === 403
+      ) {
+        alert(
+          "You are logged in, but you do not have permission to create or edit entrepreneurs."
+        );
+
+        return;
+      }
+
+      /* =====================================================
+         400
+      ====================================================== */
+
+      if (
+        error.response?.status === 400
+      ) {
+        const backendErrors =
+          error.response?.data;
+
+        let message =
+          "Please check the information entered.";
+
+        if (
+          backendErrors &&
+          typeof backendErrors === "object"
+        ) {
+          const messages =
+            Object.entries(
+              backendErrors
+            )
+              .map(
+                ([field, errors]) => {
+                  const errorMessage =
+                    Array.isArray(errors)
+                      ? errors.join(", ")
+                      : String(errors);
+
+                  return `${field}: ${errorMessage}`;
+                }
+              )
+              .join("\n");
+
+          if (messages) {
+            message = messages;
+          }
+        }
+
+        alert(message);
+        return;
+      }
+
+      /* =====================================================
+         413
+      ====================================================== */
+
+      if (
+        error.response?.status === 413
+      ) {
+        alert(
+          "The uploaded image is too large. Please choose a smaller image."
+        );
+
+        return;
+      }
+
+      /* =====================================================
+         415
+      ====================================================== */
+
+      if (
+        error.response?.status === 415
+      ) {
+        alert(
+          "The server rejected the uploaded file format."
+        );
+
+        return;
+      }
+
+      /* =====================================================
+         500
+      ====================================================== */
+
+      if (
+        error.response?.status >= 500
+      ) {
+        alert(
+          "The server encountered an error while saving the entrepreneur. Please check the backend logs."
+        );
+
+        return;
+      }
+
+      /* =====================================================
+         NETWORK ERROR
+      ====================================================== */
+
+      if (
+        error.request &&
+        !error.response
+      ) {
+        alert(
+          "The backend server could not be reached."
+        );
+
+        return;
+      }
+
+      /* =====================================================
+         GENERAL ERROR
+      ====================================================== */
+
+      alert(
+        error.response?.data?.detail ||
+          "Unable to save entrepreneur. Please try again."
+      );
+
+    } finally {
+      setSaving(false);
     }
-
-    // =====================================================
-    // GENERAL ERROR
-    // =====================================================
-
-    alert(
-      error.response?.data?.detail ||
-        "Unable to save entrepreneur. Please try again."
-    );
-
-  } finally {
-    setSaving(false);
-  }
-};
+  };
 
   /* =========================================================
      DELETE
@@ -567,11 +635,6 @@ export default function AdminDashboard() {
     if (!confirmed) return;
 
     try {
-      console.log(
-        "Deleting entrepreneur:",
-        id
-      );
-
       await api.delete(
         `/entrepreneurs/${id}/`
       );
@@ -582,11 +645,6 @@ export default function AdminDashboard() {
       console.error(
         "Delete error:",
         error
-      );
-
-      console.error(
-        "Backend response:",
-        error.response?.data
       );
 
       if (
@@ -661,19 +719,99 @@ export default function AdminDashboard() {
     );
 
   /* =========================================================
+     IMAGE PREVIEW COMPONENT
+  ========================================================== */
+
+  const ImagePreview = ({
+    file,
+    existingImage,
+    label,
+  }) => {
+    const [preview, setPreview] =
+      useState(null);
+
+    useEffect(() => {
+      if (!file) {
+        setPreview(null);
+        return;
+      }
+
+      const objectUrl =
+        URL.createObjectURL(file);
+
+      setPreview(objectUrl);
+
+      return () => {
+        URL.revokeObjectURL(
+          objectUrl
+        );
+      };
+    }, [file]);
+
+    const imageSource =
+      preview || existingImage;
+
+    return (
+      <div
+        className="
+          aspect-square
+          rounded-lg
+          bg-slate-100
+          flex
+          items-center
+          justify-center
+          mb-3
+          overflow-hidden
+          border
+          border-slate-200
+        "
+      >
+        {imageSource ? (
+          <img
+            src={imageSource}
+            alt={label}
+            className="
+              w-full
+              h-full
+              object-cover
+            "
+          />
+        ) : (
+          <div className="text-center">
+            <FaImage className="text-3xl text-slate-300 mx-auto" />
+
+            <p className="text-xs text-slate-400 mt-2">
+              No image
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  /* =========================================================
      RENDER
   ========================================================== */
 
   return (
     <div className="min-h-screen bg-slate-100">
 
-      {/* HEADER */}
+      {/* =====================================================
+          HEADER
+      ====================================================== */}
 
       <header className="bg-slate-900 text-white shadow-lg">
 
         <div className="max-w-7xl mx-auto px-6 py-5">
 
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="
+            flex
+            flex-col
+            md:flex-row
+            md:items-center
+            justify-between
+            gap-4
+          ">
 
             <div>
               <h1 className="text-2xl font-bold">
@@ -692,10 +830,14 @@ export default function AdminDashboard() {
                   navigate("/")
                 }
                 className="
-                  flex items-center gap-2
-                  px-4 py-2
+                  flex
+                  items-center
+                  gap-2
+                  px-4
+                  py-2
                   rounded-lg
-                  border border-slate-600
+                  border
+                  border-slate-600
                   hover:bg-slate-800
                   transition
                 "
@@ -707,8 +849,11 @@ export default function AdminDashboard() {
               <button
                 onClick={handleLogout}
                 className="
-                  flex items-center gap-2
-                  px-4 py-2
+                  flex
+                  items-center
+                  gap-2
+                  px-4
+                  py-2
                   rounded-lg
                   bg-red-500
                   hover:bg-red-600
@@ -727,17 +872,39 @@ export default function AdminDashboard() {
 
       </header>
 
-      {/* CONTENT */}
+      {/* =====================================================
+          CONTENT
+      ====================================================== */}
 
       <main className="max-w-7xl mx-auto px-6 py-10">
 
-        {/* STATISTICS */}
+        {/* ===================================================
+            STATISTICS
+        ==================================================== */}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+        <div className="
+          grid
+          grid-cols-1
+          sm:grid-cols-2
+          lg:grid-cols-3
+          gap-6
+          mb-10
+        ">
 
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          {/* ENTREPRENEURS */}
 
-            <div className="flex items-center justify-between">
+          <div className="
+            bg-white
+            rounded-xl
+            shadow-sm
+            p-6
+          ">
+
+            <div className="
+              flex
+              items-center
+              justify-between
+            ">
 
               <div>
 
@@ -745,13 +912,27 @@ export default function AdminDashboard() {
                   Entrepreneurs
                 </p>
 
-                <h2 className="text-3xl font-bold text-slate-900 mt-2">
+                <h2 className="
+                  text-3xl
+                  font-bold
+                  text-slate-900
+                  mt-2
+                ">
                   {totalEntrepreneurs}
                 </h2>
 
               </div>
 
-              <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+              <div className="
+                w-12
+                h-12
+                rounded-xl
+                bg-blue-100
+                text-blue-600
+                flex
+                items-center
+                justify-center
+              ">
                 <FaUsers />
               </div>
 
@@ -759,9 +940,20 @@ export default function AdminDashboard() {
 
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          {/* WORK IMAGES */}
 
-            <div className="flex items-center justify-between">
+          <div className="
+            bg-white
+            rounded-xl
+            shadow-sm
+            p-6
+          ">
+
+            <div className="
+              flex
+              items-center
+              justify-between
+            ">
 
               <div>
 
@@ -769,13 +961,27 @@ export default function AdminDashboard() {
                   Work Images
                 </p>
 
-                <h2 className="text-3xl font-bold text-slate-900 mt-2">
+                <h2 className="
+                  text-3xl
+                  font-bold
+                  text-slate-900
+                  mt-2
+                ">
                   {totalWorks}
                 </h2>
 
               </div>
 
-              <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">
+              <div className="
+                w-12
+                h-12
+                rounded-xl
+                bg-purple-100
+                text-purple-600
+                flex
+                items-center
+                justify-center
+              ">
                 <FaImages />
               </div>
 
@@ -783,9 +989,20 @@ export default function AdminDashboard() {
 
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm p-6">
+          {/* FEATURED */}
 
-            <div className="flex items-center justify-between">
+          <div className="
+            bg-white
+            rounded-xl
+            shadow-sm
+            p-6
+          ">
+
+            <div className="
+              flex
+              items-center
+              justify-between
+            ">
 
               <div>
 
@@ -793,13 +1010,27 @@ export default function AdminDashboard() {
                   Featured
                 </p>
 
-                <h2 className="text-3xl font-bold text-slate-900 mt-2">
+                <h2 className="
+                  text-3xl
+                  font-bold
+                  text-slate-900
+                  mt-2
+                ">
                   {featuredCount}
                 </h2>
 
               </div>
 
-              <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-500 flex items-center justify-center">
+              <div className="
+                w-12
+                h-12
+                rounded-xl
+                bg-amber-100
+                text-amber-500
+                flex
+                items-center
+                justify-center
+              ">
                 <FaStar />
               </div>
 
@@ -809,22 +1040,51 @@ export default function AdminDashboard() {
 
         </div>
 
-        {/* ENTREPRENEURS */}
+        {/* ===================================================
+            ENTREPRENEURS TABLE
+        ==================================================== */}
 
-        <div className="bg-white rounded-xl shadow-sm">
+        <div className="
+          bg-white
+          rounded-xl
+          shadow-sm
+          overflow-hidden
+        ">
 
-          <div className="p-6 border-b border-slate-200">
+          {/* HEADER */}
 
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="
+            p-6
+            border-b
+            border-slate-200
+          ">
+
+            <div className="
+              flex
+              flex-col
+              md:flex-row
+              md:items-center
+              justify-between
+              gap-4
+            ">
 
               <div>
 
-                <h2 className="text-xl font-bold text-slate-900">
+                <h2 className="
+                  text-xl
+                  font-bold
+                  text-slate-900
+                ">
                   Entrepreneurs
                 </h2>
 
-                <p className="text-slate-500 text-sm mt-1">
-                  Manage entrepreneur profiles and businesses.
+                <p className="
+                  text-slate-500
+                  text-sm
+                  mt-1
+                ">
+                  Manage entrepreneur profiles
+                  and businesses.
                 </p>
 
               </div>
@@ -832,11 +1092,15 @@ export default function AdminDashboard() {
               <button
                 onClick={openAddForm}
                 className="
-                  flex items-center justify-center gap-2
+                  flex
+                  items-center
+                  justify-center
+                  gap-2
                   bg-amber-400
                   hover:bg-amber-500
                   text-slate-900
-                  px-5 py-3
+                  px-5
+                  py-3
                   rounded-lg
                   font-semibold
                   transition
@@ -858,7 +1122,9 @@ export default function AdminDashboard() {
 
               <FaSearch
                 className="
-                  absolute left-4 top-1/2
+                  absolute
+                  left-4
+                  top-1/2
                   -translate-y-1/2
                   text-slate-400
                 "
@@ -873,8 +1139,11 @@ export default function AdminDashboard() {
                 placeholder="Search entrepreneurs..."
                 className="
                   w-full
-                  pl-11 pr-4 py-3
-                  border border-slate-300
+                  pl-11
+                  pr-4
+                  py-3
+                  border
+                  border-slate-300
                   rounded-lg
                   outline-none
                   focus:border-amber-400
@@ -887,17 +1156,24 @@ export default function AdminDashboard() {
 
           </div>
 
-          {/* TABLE */}
+          {/* TABLE CONTENT */}
 
           {loading ? (
 
-            <div className="p-10 text-center text-slate-500">
+            <div className="
+              p-10
+              text-center
+              text-slate-500
+            ">
               Loading entrepreneurs...
             </div>
 
           ) : error ? (
 
-            <div className="p-10 text-center">
+            <div className="
+              p-10
+              text-center
+            ">
 
               <p className="text-red-500 mb-4">
                 {error}
@@ -906,7 +1182,8 @@ export default function AdminDashboard() {
               <button
                 onClick={loadEntrepreneurs}
                 className="
-                  px-4 py-2
+                  px-4
+                  py-2
                   bg-slate-900
                   text-white
                   rounded-lg
@@ -919,7 +1196,11 @@ export default function AdminDashboard() {
 
           ) : filteredEntrepreneurs.length === 0 ? (
 
-            <div className="p-10 text-center text-slate-500">
+            <div className="
+              p-10
+              text-center
+              text-slate-500
+            ">
               {search
                 ? "No entrepreneurs match your search."
                 : "No entrepreneurs found."}
@@ -935,23 +1216,58 @@ export default function AdminDashboard() {
 
                   <tr>
 
-                    <th className="text-left px-6 py-4 text-sm font-semibold text-slate-600">
+                    <th className="
+                      text-left
+                      px-6
+                      py-4
+                      text-sm
+                      font-semibold
+                      text-slate-600
+                    ">
                       Entrepreneur
                     </th>
 
-                    <th className="text-left px-6 py-4 text-sm font-semibold text-slate-600">
+                    <th className="
+                      text-left
+                      px-6
+                      py-4
+                      text-sm
+                      font-semibold
+                      text-slate-600
+                    ">
                       Title
                     </th>
 
-                    <th className="text-left px-6 py-4 text-sm font-semibold text-slate-600">
+                    <th className="
+                      text-left
+                      px-6
+                      py-4
+                      text-sm
+                      font-semibold
+                      text-slate-600
+                    ">
                       Location
                     </th>
 
-                    <th className="text-left px-6 py-4 text-sm font-semibold text-slate-600">
+                    <th className="
+                      text-left
+                      px-6
+                      py-4
+                      text-sm
+                      font-semibold
+                      text-slate-600
+                    ">
                       Featured
                     </th>
 
-                    <th className="text-right px-6 py-4 text-sm font-semibold text-slate-600">
+                    <th className="
+                      text-right
+                      px-6
+                      py-4
+                      text-sm
+                      font-semibold
+                      text-slate-600
+                    ">
                       Actions
                     </th>
 
@@ -959,19 +1275,29 @@ export default function AdminDashboard() {
 
                 </thead>
 
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="
+                  divide-y
+                  divide-slate-100
+                ">
 
                   {filteredEntrepreneurs.map(
                     (person) => (
 
                       <tr
                         key={person.id}
-                        className="hover:bg-slate-50"
+                        className="
+                          hover:bg-slate-50
+                          transition
+                        "
                       >
 
                         <td className="px-6 py-4">
 
-                          <div className="flex items-center gap-3">
+                          <div className="
+                            flex
+                            items-center
+                            gap-3
+                          ">
 
                             <img
                               src={
@@ -980,14 +1306,18 @@ export default function AdminDashboard() {
                               }
                               alt={person.name}
                               className="
-                                w-12 h-12
+                                w-12
+                                h-12
                                 rounded-lg
                                 object-cover
                                 bg-slate-100
                               "
                             />
 
-                            <p className="font-semibold text-slate-900">
+                            <p className="
+                              font-semibold
+                              text-slate-900
+                            ">
                               {person.name}
                             </p>
 
@@ -995,11 +1325,19 @@ export default function AdminDashboard() {
 
                         </td>
 
-                        <td className="px-6 py-4 text-slate-600">
+                        <td className="
+                          px-6
+                          py-4
+                          text-slate-600
+                        ">
                           {person.title}
                         </td>
 
-                        <td className="px-6 py-4 text-slate-600">
+                        <td className="
+                          px-6
+                          py-4
+                          text-slate-600
+                        ">
                           {person.location}
                         </td>
 
@@ -1008,10 +1346,13 @@ export default function AdminDashboard() {
                           {person.featured ? (
 
                             <span className="
-                              inline-flex items-center gap-1
+                              inline-flex
+                              items-center
+                              gap-1
                               bg-amber-100
                               text-amber-700
-                              px-3 py-1
+                              px-3
+                              py-1
                               rounded-full
                               text-xs
                               font-semibold
@@ -1022,7 +1363,10 @@ export default function AdminDashboard() {
 
                           ) : (
 
-                            <span className="text-slate-400 text-sm">
+                            <span className="
+                              text-slate-400
+                              text-sm
+                            ">
                               No
                             </span>
 
@@ -1032,14 +1376,19 @@ export default function AdminDashboard() {
 
                         <td className="px-6 py-4">
 
-                          <div className="flex justify-end gap-2">
+                          <div className="
+                            flex
+                            justify-end
+                            gap-2
+                          ">
 
                             <button
                               onClick={() =>
                                 openEditForm(person)
                               }
                               className="
-                                p-2 rounded-lg
+                                p-2
+                                rounded-lg
                                 bg-blue-50
                                 text-blue-600
                                 hover:bg-blue-100
@@ -1056,7 +1405,8 @@ export default function AdminDashboard() {
                                 )
                               }
                               className="
-                                p-2 rounded-lg
+                                p-2
+                                rounded-lg
                                 bg-red-50
                                 text-red-600
                                 hover:bg-red-100
@@ -1093,50 +1443,60 @@ export default function AdminDashboard() {
 
       {showForm && (
 
-        <div
-          className="
-            fixed inset-0
-            bg-black/70
-            z-50
-            flex items-center justify-center
-            p-4
-          "
-        >
+        <div className="
+          fixed
+          inset-0
+          bg-black/70
+          z-50
+          flex
+          items-center
+          justify-center
+          p-4
+        ">
 
-          <div
-            className="
-              bg-white
-              w-full
-              max-w-3xl
-              max-h-[90vh]
-              overflow-y-auto
-              rounded-2xl
-              shadow-2xl
-            "
-          >
+          <div className="
+            bg-white
+            w-full
+            max-w-4xl
+            max-h-[92vh]
+            overflow-y-auto
+            rounded-2xl
+            shadow-2xl
+          ">
 
             {/* MODAL HEADER */}
 
-            <div
-              className="
-                sticky top-0
-                bg-white
-                border-b border-slate-200
-                px-6 py-5
-                flex justify-between items-center
-                z-10
-              "
-            >
+            <div className="
+              sticky
+              top-0
+              bg-white
+              border-b
+              border-slate-200
+              px-6
+              py-5
+              flex
+              justify-between
+              items-center
+              z-10
+            ">
 
               <div>
 
-                <h2 className="text-xl font-bold">
+                <h2 className="
+                  text-xl
+                  font-bold
+                  text-slate-900
+                ">
                   {editingEntrepreneur
                     ? "Edit Entrepreneur"
                     : "Add Entrepreneur"}
                 </h2>
 
-                <p className="text-sm text-slate-500 mt-1">
+                <p className="
+                  text-sm
+                  text-slate-500
+                  mt-1
+                ">
                   Enter entrepreneur information below.
                 </p>
 
@@ -1146,12 +1506,15 @@ export default function AdminDashboard() {
                 onClick={closeForm}
                 disabled={saving}
                 className="
-                  w-9 h-9
+                  w-9
+                  h-9
                   rounded-lg
                   bg-slate-100
                   hover:bg-slate-200
                   disabled:opacity-50
-                  flex items-center justify-center
+                  flex
+                  items-center
+                  justify-center
                 "
               >
                 <FaTimes />
@@ -1163,18 +1526,31 @@ export default function AdminDashboard() {
 
             <form
               onSubmit={handleSubmit}
-              className="p-6 space-y-6"
+              className="
+                p-6
+                space-y-7
+              "
             >
 
-              {/* BASIC INFORMATION */}
+              {/* =================================================
+                  BASIC INFORMATION
+              ================================================== */}
 
               <div>
 
-                <h3 className="font-bold text-slate-900 mb-4">
+                <h3 className="
+                  font-bold
+                  text-slate-900
+                  mb-4
+                ">
                   Basic Information
                 </h3>
 
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="
+                  grid
+                  md:grid-cols-2
+                  gap-4
+                ">
 
                   <input
                     type="text"
@@ -1209,11 +1585,18 @@ export default function AdminDashboard() {
 
               </div>
 
-              {/* DESCRIPTION */}
+              {/* =================================================
+                  DESCRIPTION
+              ================================================== */}
 
               <div>
 
-                <label className="block font-semibold text-sm mb-2">
+                <label className="
+                  block
+                  font-semibold
+                  text-sm
+                  mb-2
+                ">
                   Description
                 </label>
 
@@ -1223,43 +1606,455 @@ export default function AdminDashboard() {
                   onChange={handleChange}
                   rows="5"
                   placeholder="Tell us about this entrepreneur..."
-                  className="input-field resize-none"
-                />
-
-              </div>
-
-              {/* IMAGE */}
-
-              <div>
-
-                <label className="block font-semibold text-sm mb-2">
-                  Profile Picture
-                </label>
-
-                <input
-                  type="file"
-                  name="image"
-                  accept=".jpeg,.png, .jpg,.webp"
-                  onChange={handleChange}
                   className="
-                    w-full
-                    border border-slate-300
-                    rounded-lg
-                    p-3
+                    input-field
+                    resize-none
                   "
                 />
 
-                <p className="text-xs text-slate-400 mt-2">
-                  Upload a JPG, PNG, or WebP profile image.
-                </p>
-
               </div>
 
-              {/* VIDEO */}
+              {/* =================================================
+                  IMAGES
+              ================================================== */}
 
               <div>
 
-                <label className="block font-semibold text-sm mb-2">
+                <div className="
+                  flex
+                  items-center
+                  justify-between
+                  mb-5
+                ">
+
+                  <div>
+
+                    <h3 className="
+                      font-bold
+                      text-slate-900
+                    ">
+                      Entrepreneur Images
+                    </h3>
+
+                    <p className="
+                      text-sm
+                      text-slate-500
+                      mt-1
+                    ">
+                      Add a profile picture and
+                      images showing the entrepreneur's work.
+                    </p>
+
+                  </div>
+
+                  <span className="
+                    hidden
+                    sm:inline-flex
+                    items-center
+                    bg-purple-100
+                    text-purple-700
+                    px-3
+                    py-1
+                    rounded-full
+                    text-xs
+                    font-semibold
+                  ">
+                    4 Images
+                  </span>
+
+                </div>
+
+                {/* PROFILE IMAGE */}
+
+                <div className="
+                  border
+                  border-slate-200
+                  rounded-xl
+                  p-5
+                  bg-slate-50
+                  mb-6
+                ">
+
+                  <div className="
+                    flex
+                    items-center
+                    gap-3
+                    mb-4
+                  ">
+
+                    <div className="
+                      w-10
+                      h-10
+                      rounded-lg
+                      bg-amber-100
+                      text-amber-600
+                      flex
+                      items-center
+                      justify-center
+                      font-bold
+                    ">
+                      1
+                    </div>
+
+                    <div>
+
+                      <label className="
+                        block
+                        font-semibold
+                        text-sm
+                        text-slate-900
+                      ">
+                        Profile Picture
+                      </label>
+
+                      <p className="
+                        text-xs
+                        text-slate-500
+                      ">
+                        Main image displayed on
+                        the entrepreneur profile.
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                  {editingEntrepreneur?.image && (
+                    <div className="
+                      w-32
+                      h-32
+                      rounded-xl
+                      overflow-hidden
+                      mb-4
+                      border
+                      border-slate-200
+                    ">
+                      <img
+                        src={
+                          editingEntrepreneur.image
+                        }
+                        alt="Current profile"
+                        className="
+                          w-full
+                          h-full
+                          object-cover
+                        "
+                      />
+                    </div>
+                  )}
+
+                  <input
+                    type="file"
+                    name="image"
+                    accept=".jpeg,.jpg,.png,.webp"
+                    onChange={handleChange}
+                    className="
+                      block
+                      w-full
+                      text-sm
+                      text-slate-600
+                      border
+                      border-slate-300
+                      rounded-lg
+                      bg-white
+                      cursor-pointer
+                      p-2
+                      file:mr-4
+                      file:py-2
+                      file:px-4
+                      file:rounded-lg
+                      file:border-0
+                      file:bg-amber-100
+                      file:text-amber-700
+                      file:font-semibold
+                      hover:file:bg-amber-200
+                    "
+                  />
+
+                  <p className="
+                    text-xs
+                    text-slate-400
+                    mt-2
+                  ">
+                    JPG, JPEG, PNG or WebP.
+                  </p>
+
+                </div>
+
+                {/* WORK IMAGES */}
+
+                <div>
+
+                  <div className="
+                    flex
+                    items-center
+                    justify-between
+                    mb-4
+                  ">
+
+                    <div>
+
+                      <h4 className="
+                        font-semibold
+                        text-slate-900
+                      ">
+                        Work Images
+                      </h4>
+
+                      <p className="
+                        text-xs
+                        text-slate-500
+                        mt-1
+                      ">
+                        Upload up to three images
+                        showing the entrepreneur's work.
+                      </p>
+
+                    </div>
+
+                    <span className="
+                      text-xs
+                      font-semibold
+                      bg-purple-100
+                      text-purple-700
+                      px-3
+                      py-1
+                      rounded-full
+                    ">
+                      3 Images
+                    </span>
+
+                  </div>
+
+                  <div className="
+                    grid
+                    grid-cols-1
+                    sm:grid-cols-3
+                    gap-4
+                  ">
+
+                    {/* WORK IMAGE 1 */}
+
+                    <div className="
+                      border
+                      border-slate-200
+                      rounded-xl
+                      p-3
+                      bg-white
+                      hover:border-amber-300
+                      transition
+                    ">
+
+                      <ImagePreview
+                        file={
+                          formData.work_image_1
+                        }
+                        existingImage={
+                          editingEntrepreneur
+                            ?.gallery?.[0]
+                              ?.image
+                        }
+                        label="Work Image 1"
+                      />
+
+                      <label className="
+                        block
+                        text-sm
+                        font-semibold
+                        text-slate-700
+                        mb-2
+                      ">
+                        Work Image 1
+                      </label>
+
+                      <input
+                        type="file"
+                        name="work_image_1"
+                        accept=".jpg,.jpeg,.png,.webp"
+                        onChange={handleChange}
+                        className="
+                          block
+                          w-full
+                          text-xs
+                          text-slate-500
+                          border
+                          border-slate-300
+                          rounded-lg
+                          bg-slate-50
+                          cursor-pointer
+                          p-2
+                          file:mr-2
+                          file:py-1.5
+                          file:px-2
+                          file:rounded-md
+                          file:border-0
+                          file:bg-slate-200
+                          file:text-slate-700
+                          file:text-xs
+                          file:font-medium
+                          hover:file:bg-slate-300
+                        "
+                      />
+
+                    </div>
+
+                    {/* WORK IMAGE 2 */}
+
+                    <div className="
+                      border
+                      border-slate-200
+                      rounded-xl
+                      p-3
+                      bg-white
+                      hover:border-amber-300
+                      transition
+                    ">
+
+                      <ImagePreview
+                        file={
+                          formData.work_image_2
+                        }
+                        existingImage={
+                          editingEntrepreneur
+                            ?.gallery?.[1]
+                              ?.image
+                        }
+                        label="Work Image 2"
+                      />
+
+                      <label className="
+                        block
+                        text-sm
+                        font-semibold
+                        text-slate-700
+                        mb-2
+                      ">
+                        Work Image 2
+                      </label>
+
+                      <input
+                        type="file"
+                        name="work_image_2"
+                        accept=".jpg,.jpeg,.png,.webp"
+                        onChange={handleChange}
+                        className="
+                          block
+                          w-full
+                          text-xs
+                          text-slate-500
+                          border
+                          border-slate-300
+                          rounded-lg
+                          bg-slate-50
+                          cursor-pointer
+                          p-2
+                          file:mr-2
+                          file:py-1.5
+                          file:px-2
+                          file:rounded-md
+                          file:border-0
+                          file:bg-slate-200
+                          file:text-slate-700
+                          file:text-xs
+                          file:font-medium
+                          hover:file:bg-slate-300
+                        "
+                      />
+
+                    </div>
+
+                    {/* WORK IMAGE 3 */}
+
+                    <div className="
+                      border
+                      border-slate-200
+                      rounded-xl
+                      p-3
+                      bg-white
+                      hover:border-amber-300
+                      transition
+                    ">
+
+                      <ImagePreview
+                        file={
+                          formData.work_image_3
+                        }
+                        existingImage={
+                          editingEntrepreneur
+                            ?.gallery?.[2]
+                              ?.image
+                        }
+                        label="Work Image 3"
+                      />
+
+                      <label className="
+                        block
+                        text-sm
+                        font-semibold
+                        text-slate-700
+                        mb-2
+                      ">
+                        Work Image 3
+                      </label>
+
+                      <input
+                        type="file"
+                        name="work_image_3"
+                        accept=".jpg,.jpeg,.png,.webp"
+                        onChange={handleChange}
+                        className="
+                          block
+                          w-full
+                          text-xs
+                          text-slate-500
+                          border
+                          border-slate-300
+                          rounded-lg
+                          bg-slate-50
+                          cursor-pointer
+                          p-2
+                          file:mr-2
+                          file:py-1.5
+                          file:px-2
+                          file:rounded-md
+                          file:border-0
+                          file:bg-slate-200
+                          file:text-slate-700
+                          file:text-xs
+                          file:font-medium
+                          hover:file:bg-slate-300
+                        "
+                      />
+
+                    </div>
+
+                  </div>
+
+                  <p className="
+                    text-xs
+                    text-slate-400
+                    mt-3
+                  ">
+                    Supported formats: JPG, JPEG,
+                    PNG and WebP.
+                  </p>
+
+                </div>
+
+              </div>
+
+              {/* =================================================
+                  VIDEO
+              ================================================== */}
+
+              <div>
+
+                <label className="
+                  block
+                  font-semibold
+                  text-sm
+                  mb-2
+                ">
                   Video URL
                 </label>
 
@@ -1272,22 +2067,36 @@ export default function AdminDashboard() {
                   className="input-field"
                 />
 
-                <p className="text-xs text-slate-400 mt-2">
-                  Enter a YouTube or other supported video URL.
-                  The video itself is not uploaded to the website.
+                <p className="
+                  text-xs
+                  text-slate-400
+                  mt-2
+                ">
+                  Enter a YouTube or other supported
+                  video URL.
                 </p>
 
               </div>
 
-              {/* SOCIAL MEDIA */}
+              {/* =================================================
+                  SOCIAL MEDIA
+              ================================================== */}
 
               <div>
 
-                <h3 className="font-bold text-slate-900 mb-4">
+                <h3 className="
+                  font-bold
+                  text-slate-900
+                  mb-4
+                ">
                   Social Media
                 </h3>
 
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="
+                  grid
+                  md:grid-cols-2
+                  gap-4
+                ">
 
                   <input
                     type="text"
@@ -1347,16 +2156,27 @@ export default function AdminDashboard() {
 
               </div>
 
-              {/* FEATURED */}
+              {/* =================================================
+                  FEATURED
+              ================================================== */}
 
-              <label className="flex items-center gap-3 cursor-pointer">
+              <label className="
+                flex
+                items-center
+                gap-3
+                cursor-pointer
+              ">
 
                 <input
                   type="checkbox"
                   name="featured"
                   checked={formData.featured}
                   onChange={handleChange}
-                  className="w-5 h-5 accent-amber-400"
+                  className="
+                    w-5
+                    h-5
+                    accent-amber-400
+                  "
                 />
 
                 <span className="font-medium">
@@ -1365,18 +2185,28 @@ export default function AdminDashboard() {
 
               </label>
 
-              {/* BUTTONS */}
+              {/* =================================================
+                  BUTTONS
+              ================================================== */}
 
-              <div className="flex justify-end gap-3 pt-4 border-t">
+              <div className="
+                flex
+                justify-end
+                gap-3
+                pt-4
+                border-t
+              ">
 
                 <button
                   type="button"
                   onClick={closeForm}
                   disabled={saving}
                   className="
-                    px-5 py-3
+                    px-5
+                    py-3
                     rounded-lg
-                    border border-slate-300
+                    border
+                    border-slate-300
                     hover:bg-slate-100
                     disabled:opacity-50
                   "
@@ -1388,7 +2218,8 @@ export default function AdminDashboard() {
                   type="submit"
                   disabled={saving}
                   className="
-                    px-6 py-3
+                    px-6
+                    py-3
                     rounded-lg
                     bg-amber-400
                     hover:bg-amber-500

@@ -7,6 +7,9 @@ import {
   FaYoutube,
   FaGlobe,
   FaHeart,
+  FaTimes,
+  FaWhatsapp,
+  FaMapMarkerAlt,
 } from "react-icons/fa";
 
 export default function EntrepreneurModal({
@@ -18,6 +21,10 @@ export default function EntrepreneurModal({
   const [favoriteCount, setFavoriteCount] = useState(0);
 
   if (!person) return null;
+
+  // =========================================================
+  // FAVORITE
+  // =========================================================
 
   const handleFavoriteClick = () => {
     if (!favorite) {
@@ -31,206 +38,664 @@ export default function EntrepreneurModal({
     setFavorite(!favorite);
   };
 
-  const gallery = person.gallery || [];
+  // =========================================================
+  // PROFILE IMAGE
+  // =========================================================
 
-  const socials = person.socials || {};
+  const profileImage =
+    person.profile_image ||
+    person.image ||
+    "/placeholder.jpg";
+
+  // =========================================================
+  // WORK IMAGES
+  // =========================================================
+  /*
+    Django:
+    
+    class WorkImage(models.Model):
+        entrepreneur = models.ForeignKey(
+            Entrepreneur,
+            related_name="works",
+            ...
+        )
+
+    Therefore the serializer should return:
+
+    works: [
+      {
+        id: 1,
+        image: "https://..."
+      },
+      ...
+    ]
+  */
+
+  const works = Array.isArray(person.works)
+    ? person.works
+    : [];
+
+  // =========================================================
+  // SOCIAL MEDIA
+  // =========================================================
+
+  const whatsapp = person.whatsapp || "";
+  const instagram = person.instagram || "";
+  const facebook = person.facebook || "";
+  const tiktok = person.tiktok || "";
+  const youtube = person.youtube || "";
+  const website = person.website || "";
+
+  // =========================================================
+  // WHATSAPP URL
+  // =========================================================
+
+  const whatsappNumber = whatsapp.replace(
+    /[^0-9]/g,
+    ""
+  );
+
+  const whatsappUrl = whatsappNumber
+    ? `https://wa.me/${whatsappNumber}`
+    : "";
+
+  // =========================================================
+  // IMAGE URL HELPER
+  // =========================================================
+
+  const getImageUrl = (image) => {
+    if (!image) {
+      return "/placeholder.jpg";
+    }
+
+    // If backend already returns complete URL
+    if (
+      image.startsWith("http://") ||
+      image.startsWith("https://")
+    ) {
+      return image;
+    }
+
+    // Otherwise return the path
+    return image;
+  };
 
   return (
     <>
-      {/* MAIN MODAL */}
+      {/* =====================================================
+          MAIN MODAL
+      ====================================================== */}
 
-      <div className="fixed inset-0 bg-black/70 flex justify-center items-center p-4 z-50">
+      <div
+        className="
+          fixed
+          inset-0
+          bg-black/70
+          flex
+          justify-center
+          items-center
+          p-4
+          z-50
+        "
+      >
 
-        <div className="bg-white max-w-4xl w-full rounded-xl overflow-y-auto max-h-[90vh] p-6">
+        <div
+          className="
+            bg-white
+            max-w-4xl
+            w-full
+            rounded-2xl
+            overflow-y-auto
+            max-h-[90vh]
+            shadow-2xl
+          "
+        >
 
-          {/* TOP BAR */}
+          {/* =================================================
+              PROFILE HEADER IMAGE
+          ================================================== */}
 
-          <div className="flex justify-between items-center mb-4">
+          <div className="relative">
+
+            <img
+              src={getImageUrl(profileImage)}
+              alt={person.name}
+              className="
+                w-full
+                h-[300px]
+                sm:h-[380px]
+                object-cover
+              "
+            />
+
+            {/* IMAGE OVERLAY */}
+
+            <div className="
+              absolute
+              inset-0
+              bg-gradient-to-t
+              from-black/60
+              via-transparent
+              to-transparent
+            " />
+
+            {/* CLOSE BUTTON */}
 
             <button
               onClick={onClose}
-              className="text-red-500 hover:underline"
+              className="
+                absolute
+                top-4
+                right-4
+                w-10
+                h-10
+                rounded-full
+                bg-black/60
+                text-white
+                flex
+                items-center
+                justify-center
+                hover:bg-red-500
+                transition
+              "
+              aria-label="Close"
             >
-              Close
+              <FaTimes />
             </button>
+
+            {/* FAVORITE */}
 
             <button
               onClick={handleFavoriteClick}
-              className={`flex items-center gap-2 text-2xl transition ${
-                favorite
-                  ? "text-red-500"
-                  : "text-gray-400"
-              }`}
+              className={`
+                absolute
+                bottom-4
+                right-4
+                flex
+                items-center
+                gap-2
+                px-4
+                py-2
+                rounded-full
+                bg-white/95
+                shadow-lg
+                text-xl
+                transition
+                ${
+                  favorite
+                    ? "text-red-500"
+                    : "text-gray-500"
+                }
+              `}
+              aria-label="Favorite entrepreneur"
             >
+
               <FaHeart />
 
-              <span className="text-base font-semibold">
+              <span className="
+                text-sm
+                font-semibold
+              ">
                 {favoriteCount}
               </span>
+
             </button>
 
           </div>
 
-          {/* NAME */}
+          {/* =================================================
+              CONTENT
+          ================================================== */}
 
-          <h2 className="text-2xl font-bold mb-1">
-            {person.name}
-          </h2>
+          <div className="p-6">
 
-          {person.title && (
-            <p className="text-gray-500 mb-4">
-              {person.title}
-            </p>
-          )}
+            {/* =================================================
+                NAME
+            ================================================== */}
 
-          {/* PROFILE IMAGE */}
+            <h2 className="
+              text-2xl
+              sm:text-3xl
+              font-bold
+              text-gray-900
+              mb-1
+            ">
+              {person.name}
+            </h2>
 
-          <img
-            src={person.image || person.profile_image}
-            alt={person.name}
-            className="w-full h-70 object-cover rounded-lg mb-4"
-          />
+            {/* TITLE */}
 
-          {/* LOCATION */}
+            {person.title && (
+              <p className="
+                text-amber-600
+                font-semibold
+                mb-3
+              ">
+                {person.title}
+              </p>
+            )}
 
-          {person.location && (
-            <p className="text-gray-500 mb-4">
-              📍 {person.location}
-            </p>
-          )}
+            {/* LOCATION */}
 
-          {/* DESCRIPTION */}
+            {person.location && (
+              <div className="
+                flex
+                items-center
+                gap-2
+                text-gray-500
+                mb-5
+              ">
 
-          <p className="mb-6 text-gray-700 leading-relaxed">
-            {person.description}
-          </p>
+                <FaMapMarkerAlt />
 
-          {/* GALLERY */}
+                <span>
+                  {person.location}
+                </span>
 
-          {gallery.length > 0 && (
-            <>
-              <h3 className="text-xl font-bold mb-3">
-                Their Work
-              </h3>
+              </div>
+            )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+            {/* =================================================
+                DESCRIPTION
+            ================================================== */}
 
-                {gallery.map((img, index) => (
-                  <div
-                    key={index}
-                    className="w-full aspect-square overflow-hidden rounded-lg"
+            {person.description && (
+              <div className="mb-7">
+
+                <h3 className="
+                  text-xl
+                  font-bold
+                  text-gray-900
+                  mb-3
+                ">
+                  About
+                </h3>
+
+                <p className="
+                  text-gray-700
+                  leading-relaxed
+                ">
+                  {person.description}
+                </p>
+
+              </div>
+            )}
+
+            {/* =================================================
+                WORK IMAGES
+            ================================================== */}
+
+            {works.length > 0 && (
+
+              <div className="mb-8">
+
+                <h3 className="
+                  text-xl
+                  font-bold
+                  text-gray-900
+                  mb-4
+                ">
+                  Their Work
+                </h3>
+
+                <div className="
+                  grid
+                  grid-cols-1
+                  sm:grid-cols-3
+                  gap-4
+                ">
+
+                  {works
+                    .slice(0, 3)
+                    .map((work, index) => {
+
+                      const image =
+                        typeof work === "string"
+                          ? work
+                          : work?.image;
+
+                      if (!image) return null;
+
+                      const imageUrl =
+                        getImageUrl(image);
+
+                      return (
+                        <button
+                          key={
+                            work?.id ||
+                            index
+                          }
+                          type="button"
+                          onClick={() =>
+                            setLightbox(
+                              imageUrl
+                            )
+                          }
+                          className="
+                            group
+                            relative
+                            w-full
+                            aspect-square
+                            overflow-hidden
+                            rounded-xl
+                            bg-gray-100
+                          "
+                        >
+
+                          <img
+                            src={imageUrl}
+                            alt={`
+                              ${person.name}
+                              work ${index + 1}
+                            `}
+                            className="
+                              w-full
+                              h-full
+                              object-cover
+                              transition
+                              duration-300
+                              group-hover:scale-105
+                            "
+                          />
+
+                          {/* IMAGE OVERLAY */}
+
+                          <div className="
+                            absolute
+                            inset-0
+                            bg-black/0
+                            group-hover:bg-black/20
+                            transition
+                          " />
+
+                        </button>
+                      );
+                    })}
+
+                </div>
+
+              </div>
+
+            )}
+
+            {/* =================================================
+                VIDEO
+            ================================================== */}
+
+            {person.video && (
+
+              <div className="mb-8">
+
+                <h3 className="
+                  text-xl
+                  font-bold
+                  text-gray-900
+                  mb-4
+                ">
+                  Featured Video
+                </h3>
+
+                <div className="
+                  relative
+                  w-full
+                  aspect-video
+                  rounded-xl
+                  overflow-hidden
+                  shadow-lg
+                  bg-black
+                ">
+
+                  <iframe
+                    className="
+                      w-full
+                      h-full
+                    "
+                    src={person.video}
+                    title={`${person.name} video`}
+                    allow="
+                      accelerometer;
+                      autoplay;
+                      clipboard-write;
+                      encrypted-media;
+                      gyroscope;
+                      picture-in-picture;
+                      web-share
+                    "
+                    allowFullScreen
+                  />
+
+                </div>
+
+              </div>
+
+            )}
+
+            {/* =================================================
+                SOCIAL MEDIA
+            ================================================== */}
+
+            {(whatsapp ||
+              instagram ||
+              facebook ||
+              tiktok ||
+              youtube ||
+              website) && (
+
+              <div className="
+                border-t
+                border-gray-200
+                pt-6
+              ">
+
+                <h3 className="
+                  text-xl
+                  font-bold
+                  text-gray-900
+                  mb-4
+                ">
+                  Connect With {person.name}
+                </h3>
+
+                {/* WHATSAPP BUTTON */}
+
+                {whatsappUrl && (
+
+                  <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="
+                      flex
+                      items-center
+                      justify-center
+                      gap-3
+                      w-full
+                      mb-5
+                      bg-green-500
+                      hover:bg-green-600
+                      text-white
+                      py-3
+                      px-5
+                      rounded-xl
+                      font-semibold
+                      transition
+                    "
                   >
-                    <img
-                      src={img}
-                      alt={`${person.name} work ${
-                        index + 1
-                      }`}
-                      onClick={() =>
-                        setLightbox(img)
-                      }
-                      className="w-full h-full object-cover cursor-pointer hover:scale-105 transition"
+
+                    <FaWhatsapp
+                      className="text-xl"
                     />
-                  </div>
-                ))}
+
+                    Contact Business
+                    on WhatsApp
+
+                  </a>
+
+                )}
+
+                {/* SOCIAL ICONS */}
+
+                <div className="
+                  flex
+                  flex-wrap
+                  items-center
+                  gap-4
+                ">
+
+                  {/* INSTAGRAM */}
+
+                  {instagram && (
+
+                    <a
+                      href={instagram}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Instagram"
+                      className="
+                        w-11
+                        h-11
+                        rounded-full
+                        bg-gray-100
+                        flex
+                        items-center
+                        justify-center
+                        text-gray-600
+                        text-xl
+                        hover:bg-pink-100
+                        hover:text-pink-500
+                        hover:scale-110
+                        transition
+                      "
+                    >
+                      <FaInstagram />
+                    </a>
+
+                  )}
+
+                  {/* FACEBOOK */}
+
+                  {facebook && (
+
+                    <a
+                      href={facebook}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Facebook"
+                      className="
+                        w-11
+                        h-11
+                        rounded-full
+                        bg-gray-100
+                        flex
+                        items-center
+                        justify-center
+                        text-gray-600
+                        text-xl
+                        hover:bg-blue-100
+                        hover:text-blue-600
+                        hover:scale-110
+                        transition
+                      "
+                    >
+                      <FaFacebook />
+                    </a>
+
+                  )}
+
+                  {/* TIKTOK */}
+
+                  {tiktok && (
+
+                    <a
+                      href={tiktok}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="TikTok"
+                      className="
+                        w-11
+                        h-11
+                        rounded-full
+                        bg-gray-100
+                        flex
+                        items-center
+                        justify-center
+                        text-gray-600
+                        text-xl
+                        hover:bg-gray-200
+                        hover:text-black
+                        hover:scale-110
+                        transition
+                      "
+                    >
+                      <FaTiktok />
+                    </a>
+
+                  )}
+
+                  {/* YOUTUBE */}
+
+                  {youtube && (
+
+                    <a
+                      href={youtube}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="YouTube"
+                      className="
+                        w-11
+                        h-11
+                        rounded-full
+                        bg-gray-100
+                        flex
+                        items-center
+                        justify-center
+                        text-gray-600
+                        text-xl
+                        hover:bg-red-100
+                        hover:text-red-600
+                        hover:scale-110
+                        transition
+                      "
+                    >
+                      <FaYoutube />
+                    </a>
+
+                  )}
+
+                  {/* WEBSITE */}
+
+                  {website && (
+
+                    <a
+                      href={website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Website"
+                      className="
+                        w-11
+                        h-11
+                        rounded-full
+                        bg-gray-100
+                        flex
+                        items-center
+                        justify-center
+                        text-gray-600
+                        text-xl
+                        hover:bg-green-100
+                        hover:text-green-600
+                        hover:scale-110
+                        transition
+                      "
+                    >
+                      <FaGlobe />
+                    </a>
+
+                  )}
+
+                </div>
 
               </div>
-            </>
-          )}
 
-          {/* VIDEO */}
-
-          {person.video && (
-            <div className="w-full mb-6">
-
-              <h3 className="text-xl font-bold mb-3">
-                Featured Video
-              </h3>
-
-              <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-lg">
-
-                <iframe
-                  className="w-full h-full"
-                  src={person.video}
-                  title={`${person.name} video`}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-
-              </div>
-
-            </div>
-          )}
-
-          {/* WHATSAPP */}
-
-          {socials.whatsapp && (
-            <a
-              href={`https://wa.me/${socials.whatsapp}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block mb-6 text-center bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition"
-            >
-              Contact Business on WhatsApp
-            </a>
-          )}
-
-          {/* SOCIAL ICONS */}
-
-          <div className="flex flex-wrap gap-6 text-2xl text-gray-600">
-
-            {socials.instagram && (
-              <a
-                href={socials.instagram}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-pink-500 hover:scale-125 transition"
-              >
-                <FaInstagram />
-              </a>
-            )}
-
-            {socials.facebook && (
-              <a
-                href={socials.facebook}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-blue-600 hover:scale-125 transition"
-              >
-                <FaFacebook />
-              </a>
-            )}
-
-            {socials.tiktok && (
-              <a
-                href={socials.tiktok}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-black hover:scale-125 transition"
-              >
-                <FaTiktok />
-              </a>
-            )}
-
-            {socials.youtube && (
-              <a
-                href={socials.youtube}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-red-600 hover:scale-125 transition"
-              >
-                <FaYoutube />
-              </a>
-            )}
-
-            {socials.website && (
-              <a
-                href={socials.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-green-600 hover:scale-125 transition"
-              >
-                <FaGlobe />
-              </a>
             )}
 
           </div>
@@ -239,19 +704,70 @@ export default function EntrepreneurModal({
 
       </div>
 
-      {/* LIGHTBOX */}
+      {/* =====================================================
+          LIGHTBOX
+      ====================================================== */}
 
       {lightbox && (
+
         <div
-          onClick={() => setLightbox(null)}
-          className="fixed inset-0 bg-black/90 flex items-center justify-center z-[60] p-4 cursor-pointer"
+          onClick={() =>
+            setLightbox(null)
+          }
+          className="
+            fixed
+            inset-0
+            bg-black/90
+            flex
+            items-center
+            justify-center
+            z-[60]
+            p-4
+            cursor-pointer
+          "
         >
+
+          <button
+            onClick={() =>
+              setLightbox(null)
+            }
+            className="
+              absolute
+              top-5
+              right-5
+              w-10
+              h-10
+              rounded-full
+              bg-white/10
+              text-white
+              flex
+              items-center
+              justify-center
+              hover:bg-red-500
+              transition
+            "
+            aria-label="Close image"
+          >
+            <FaTimes />
+          </button>
+
           <img
             src={lightbox}
             alt="Enlarged work"
-            className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain"
+            onClick={(e) =>
+              e.stopPropagation()
+            }
+            className="
+              max-h-[90vh]
+              max-w-[95vw]
+              rounded-lg
+              object-contain
+              shadow-2xl
+            "
           />
+
         </div>
+
       )}
 
     </>

@@ -1,381 +1,137 @@
-const entrepreneurs = [
-  {
-    id: 1,
-    name: "Georgina Asantewaa",
-    title: "Fashion Designer",
-    image: "/Images/Gina.PNG",
-    description:
-    "Gina is the CEO of GEE's Klodin. She creates modern African wear blending tradition with contemporary fashion.",
-    location: "Taifa",
-    gallery: [
-      "/Images/g1.jpeg",
-      "/Images/g2.jpeg",
-      "/Images/g3.jpeg",
-    ],
+import { useEffect, useState } from "react";
+import api from "../services/api";
 
-    video: "Videos/gv.mp4",
+export default function Entrepreneurs() {
+  const [entrepreneurs, setEntrepreneurs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-    socials: {
-      instagram: "https://www.instagram.com/geesklodin?igsh=d2VvM2plYmYyeG81",
-      facebook: "https://www.facebook.com/share/14XmTe4jwe8/?mibextid=wwXIfr",
-      tiktok: "https://www.tiktok.com/@gees.klodin?lang=en",
-      youtube: "#",
-      website: "#",
-      whatsapp: "233549669135", // no + sign
-    },
-  },
-  {
-    id: 2,
-    name: "Perpetual Asantewaa",
-    title: "Event Decorator",
-    image: "/Images/Pep.jpeg",
-    description:
-    "Asantewaa is an Extraordinary and Splendid Event Planner with artistic touch, bringing life to every event.",
-    location: "Taifa Burkina",
-    gallery: [
-      "https://images.unsplash.com/photo-1520975916090-3105956dac38",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1521335629791-ce4aec67dd53",
-    ],
+  useEffect(() => {
+    const loadEntrepreneurs = async () => {
+      try {
+        setLoading(true);
 
-    video: "https://www.tiktok.com/@gees.klodin/video/7606837390157761813?lang=en",
+        const response = await api.get("/entrepreneurs/");
 
-    socials: {
-      instagram: "#",
-      facebook: "#",
-      tiktok: "https://www.tiktok.com/@gees.klodin?lang=en",
-      youtube: "#",
-      website: "#",
-      whatsapp: "233549669135", // no + sign
-    },
-  },
-  {
-    id: 3,
-    name: "Edward Baah",
-    title: "Businessman",
-    image: "/Images/Eddie.jpeg",
-    description:
-    "Eddie is a diverse businessman who runs a Perfume Sales and Bread Production businesses.",
-    location: "Dome",
-    gallery: [
-      "https://images.unsplash.com/photo-1520975916090-3105956dac38",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1521335629791-ce4aec67dd53",
-    ],
+        const data = Array.isArray(response.data)
+          ? response.data
+          : response.data?.results || [];
 
-    video: "https://www.tiktok.com/@gees.klodin/video/7606837390157761813?lang=en",
+        setEntrepreneurs(data);
+      } catch (error) {
+        console.error(
+          "Failed to load entrepreneurs:",
+          error
+        );
 
-    socials: {
-      instagram: "#",
-      facebook: "#",
-      tiktok: "https://www.tiktok.com/@gees.klodin?lang=en",
-      youtube: "#",
-      website: "#",
-      whatsapp: "233549669135", // no + sign
-    },
-  },
-  {
-    id: 4,
-    name: "Naomi Quartey",
-    title: "Fashion Designer",
-    image: "/Images/Oyo.jpeg",
-    description:
-    "Naomi is the CEO of Miracle Threads. She creates modern African wear blending tradition with contemporary fashion.",
-    location: "Taifa",
-    gallery: [
-      "https://images.unsplash.com/photo-1520975916090-3105956dac38",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1521335629791-ce4aec67dd53",
-    ],
+        setError(
+          "Unable to load entrepreneurs."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    video: "https://www.tiktok.com/@gees.klodin/video/7606837390157761813?lang=en",
+    loadEntrepreneurs();
+  }, []);
 
-    socials: {
-      instagram: "#",
-      facebook: "#",
-      tiktok: "https://www.tiktok.com/@gees.klodin?lang=en",
-      youtube: "#",
-      website: "#",
-      whatsapp: "233549669135", // no + sign
-    },
-  },
-  {
-    id: 5,
-    name: "Foster Bempong",
-    title: "Graphic Designer | Videographer",
-    image: "/Images/Fost.jpeg",
-    description:
-    "Foster is a creative Graphic Designer and Videographer. He presently works with Tuff Media.",
-    location: "Taifa",
-    gallery: [
-      "https://images.unsplash.com/photo-1520975916090-3105956dac38",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1521335629791-ce4aec67dd53",
-    ],
+  if (loading) {
+    return (
+      <div className="py-20 text-center">
+        <p className="text-gray-500">
+          Loading entrepreneurs...
+        </p>
+      </div>
+    );
+  }
 
-    video: "https://www.tiktok.com/@gees.klodin/video/7606837390157761813?lang=en",
+  if (error) {
+    return (
+      <div className="py-20 text-center">
+        <p className="text-red-500">
+          {error}
+        </p>
+      </div>
+    );
+  }
 
-    socials: {
-      instagram: "#",
-      facebook: "#",
-      tiktok: "https://www.tiktok.com/@gees.klodin?lang=en",
-      youtube: "#",
-      website: "#",
-      whatsapp: "233549669135", // no + sign
-    },
-  },
-  {
-    id: 6,
-    name: "Obaa Yaa Dankyi",
-    title: "General Nurse",
-    image: "/Images/Obaa.jpeg",
-    description:
-    "Obaa is a qualified, registered healthcare professional authorized to assess, diagnose and treat physical and mental illnesses.",
-    location: "Taifa",
-    gallery: [
-      "https://images.unsplash.com/photo-1520975916090-3105956dac38",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1521335629791-ce4aec67dd53",
-    ],
+  if (entrepreneurs.length === 0) {
+    return (
+      <div className="py-20 text-center">
+        <p className="text-gray-500">
+          No entrepreneurs found.
+        </p>
+      </div>
+    );
+  }
 
-    video: "https://www.tiktok.com/@gees.klodin/video/7606837390157761813?lang=en",
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {entrepreneurs.map((person) => (
+        <div
+          key={person.id}
+          className="bg-white rounded-xl shadow-md overflow-hidden"
+        >
+          {/* PROFILE IMAGE */}
+          <img
+            src={person.profile_image}
+            alt={person.name}
+            className="w-full h-72 object-cover"
+          />
 
-    socials: {
-      instagram: "#",
-      facebook: "#",
-      tiktok: "https://www.tiktok.com/@gees.klodin?lang=en",
-      youtube: "#",
-      website: "#",
-      whatsapp: "233549669135", // no + sign
-    },
-  },
-  
-  {
-    id: 7,
-    name: "Raymond Asare Bona",
-    title: "Fireman",
-    image: "/Images/bona.jpeg",
-    description:
-    "Ray is a vibrant fire service personnel who is actively working with the Ghana Fire Service Team.",
-    location: "Taifa",
-    gallery: [
-      "https://images.unsplash.com/photo-1520975916090-3105956dac38",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1521335629791-ce4aec67dd53",
-    ],
+          {/* THREE WORK IMAGES */}
+          <div className="grid grid-cols-3 gap-2 p-2">
+            {person.works
+              ?.slice(0, 3)
+              .map((work, index) => (
+                <div
+                  key={work.id || index}
+                  className="aspect-square overflow-hidden rounded-lg"
+                >
+                  <img
+                    src={work.image}
+                    alt={`${person.name} work ${
+                      index + 1
+                    }`}
+                    className="
+                      w-full
+                      h-full
+                      object-cover
+                      hover:scale-105
+                      transition-transform
+                      duration-300
+                    "
+                  />
+                </div>
+              ))}
+          </div>
 
-    video: "https://www.tiktok.com/@gees.klodin/video/7606837390157761813?lang=en",
+          {/* INFORMATION */}
+          <div className="p-5">
 
-    socials: {
-      instagram: "#",
-      facebook: "#",
-      tiktok: "https://www.tiktok.com/@gees.klodin?lang=en",
-      youtube: "#",
-      website: "#",
-      whatsapp: "233549669135", // no + sign
-    },
-  },
-  {
-    id: 8,
-    name: "Mrs. Yaa Oforiwaa Adi-Dako ",
-    title: "Pharmacist",
-    image: "/Images/Maame.jpeg",
-    description:
-    "Maame is currently the pharmacist at Trust Hospital, working as head of pharmacy at Trust Hospital.",
-    location: "Taifa",
-    gallery: [
-      "https://images.unsplash.com/photo-1520975916090-3105956dac38",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1521335629791-ce4aec67dd53",
-    ],
+            <h2 className="text-xl font-bold">
+              {person.name}
+            </h2>
 
-    video: "https://www.tiktok.com/@gees.klodin/video/7606837390157761813?lang=en",
+            {person.title && (
+              <p className="text-gray-500 mt-1">
+                {person.title}
+              </p>
+            )}
 
-    socials: {
-      instagram: "#",
-      facebook: "#",
-      tiktok: "https://www.tiktok.com/@gees.klodin?lang=en",
-      youtube: "#",
-      website: "#",
-      whatsapp: "233549669135", // no + sign
-    },
-  },
-  {
-    id: 9,
-    name: "Gilbert Akwesi Kankam",
-    title: "CCTV Installation Specialist",
-    image: "/Images/Gilbert.jpeg",
-    description:
-    "Akwesi is a business-minded individual, who is currently skilled at CCTV Camera installation.",
-    location: "Taifa",
-    gallery: [
-      "https://images.unsplash.com/photo-1520975916090-3105956dac38",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1521335629791-ce4aec67dd53",
-    ],
+            {person.location && (
+              <p className="text-sm text-gray-400 mt-2">
+                📍 {person.location}
+              </p>
+            )}
 
-    video: "https://www.tiktok.com/@gees.klodin/video/7606837390157761813?lang=en",
+            <p className="text-gray-600 mt-4 line-clamp-3">
+              {person.description}
+            </p>
 
-    socials: {
-      instagram: "#",
-      facebook: "#",
-      tiktok: "https://www.tiktok.com/@gees.klodin?lang=en",
-      youtube: "#",
-      website: "#",
-      whatsapp: "233549669135", // no + sign
-    },
-  },
-  {
-    id: 10,
-    name: "Marian Ntiriwaa Kankam",
-    title: "Educationist",
-    image: "/Images/Mimi.jpeg",
-    description:
-    "Mimi is a futuristic education with indept knowledge in child education, coaching and mentoring.",
-    location: "Taifa",
-    gallery: [
-      "https://images.unsplash.com/photo-1520975916090-3105956dac38",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1521335629791-ce4aec67dd53",
-    ],
-
-    video: "https://www.tiktok.com/@gees.klodin/video/7606837390157761813?lang=en",
-
-    socials: {
-      instagram: "#",
-      facebook: "#",
-      tiktok: "https://www.tiktok.com/@gees.klodin?lang=en",
-      youtube: "#",
-      website: "#",
-      whatsapp: "233549669135", // no + sign
-    },
-  },
-  {
-    id: 11,
-    name: "Daniel Safo Amankwah Jnr",
-    title: "Data Analyst | Documentation Officer",
-    image: "/Images/Danny.jpeg",
-    description:
-    "Danny is currently the Documentatation Officer at Max Mobility, providing with fleet documentations ",
-    location: "Taifa",
-    gallery: [
-      "https://images.unsplash.com/photo-1520975916090-3105956dac38",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1521335629791-ce4aec67dd53",
-    ],
-
-    video: "https://www.tiktok.com/@gees.klodin/video/7606837390157761813?lang=en",
-
-    socials: {
-      instagram: "#",
-      facebook: "#",
-      tiktok: "https://www.tiktok.com/@gees.klodin?lang=en",
-      youtube: "#",
-      website: "#",
-      whatsapp: "233549669135", // no + sign
-    },
-  },
-  {
-    id: 12,
-    name: "James Kyei Appiah",
-    title: "Computer Hardware | Software Engineer",
-    image: "/Images/me.jpg",
-    description:
-    "James is a seasoned computer System and Software Engineer",
-    location: "Taifa",
-    gallery: [
-      "https://images.unsplash.com/photo-1520975916090-3105956dac38",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1521335629791-ce4aec67dd53",
-    ],
-
-    video: "https://www.tiktok.com/@gees.klodin/video/7606837390157761813?lang=en",
-
-    socials: {
-      instagram: "#",
-      facebook: "#",
-      tiktok: "https://www.tiktok.com/@qwabena_3?is_from_webapp=1&sender_device=pc",
-      youtube: "#",
-      website: "#",
-      whatsapp: "233507346539", // no + sign
-    },
-  },
-  {
-    id: 13,
-    name: "Abena Kwabuah Wiafe-Akenteng",
-    title: "Biochemist | CEO of TKG",
-    image: "/Images/Abena.jpeg",
-    description:
-    "Abena Kwabuah is an event coordinator. She's also the founder and CEO of TKG Ushering and Waiting Services. The company seeks to enhace guests experiences, creating timeless and seamless event experiences for their clients and all guests",
-    location: "Taifa",
-    gallery: [
-      "/Images/TKG2.jpeg",
-      "/Images/TKG1.jpeg",
-      "/Images/TKG.jpeg",
-    ],
-
-    video: "/Videos/Abena.mp4",
-
-    socials: {
-      instagram: "https://www.instagram.com/tkg_ushers_and_waiters?igsh=MWl1czJqZnlkY2s3YQ==",
-      facebook: "https://www.facebook.com/share/1Bc3isoG8x/?mibextid=wwXIfr#",
-      tiktok: "https://www.tiktok.com/@tkg.ushers.waiters?_r=1&_t=ZS-98opWxTJXLF",
-      youtube: "#",
-      website: "#",
-      whatsapp: "0256552403", // no + sign
-    },
-  },
-  {
-    id: 14,
-    name: "Nana Yaa Dankyi",
-    title: "Social Science Expert",
-    image: "/Images/Nana.jpeg",
-    description:
-    "Nana is a Social Scientist who is abreast in the knowledge of human society, behavior and social relationships by analyzing how people, groups and institutions interact. Nana alongside runs her wig production business.",
-    location: "Taifa",
-    gallery: [
-      "https://images.unsplash.com/photo-1520975916090-3105956dac38",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1521335629791-ce4aec67dd53",
-    ],
-
-    video: "https://www.tiktok.com/@gees.klodin/video/7606837390157761813?lang=en",
-
-    socials: {
-      instagram: "#",
-      facebook: "#",
-      tiktok: "https://www.tiktok.com/@gees.klodin?lang=en",
-      youtube: "#",
-      website: "#",
-      whatsapp: "233549669135", // no + sign
-    },
-  },
-  {
-    id: 15,
-    name: "Sandra Agyare",
-    title: "Fashion Designer",
-    image: "/Images/Sandy.jpeg",
-    description:
-    "Akosua is a contemporary fashion designer based in Accra. She creates modern and stylish outfits for all occasions.",
-    location: "Taifa",
-    gallery: [
-      "https://images.unsplash.com/photo-1520975916090-3105956dac38",
-      "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c",
-      "https://images.unsplash.com/photo-1521335629791-ce4aec67dd53",
-    ],
-
-    video: "https://www.tiktok.com/@gees.klodin/video/7606837390157761813?lang=en",
-
-    socials: {
-      instagram: "#",
-      facebook: "#",
-      tiktok: "https://www.tiktok.com/@gees.klodin?lang=en",
-      youtube: "#",
-      website: "#",
-      whatsapp: "233549669135", // no + sign
-    },
-  },
-  
-];
-
-export default entrepreneurs;
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
