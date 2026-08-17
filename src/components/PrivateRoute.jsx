@@ -1,9 +1,10 @@
 import { Navigate, Outlet } from "react-router-dom";
 
 export default function PrivateRoute() {
-  const accessToken = localStorage.getItem("access");
+  const access = localStorage.getItem("access");
+  const refresh = localStorage.getItem("refresh");
 
-  if (!accessToken) {
+  if (!access && !refresh) {
     return <Navigate to="/admin/login" replace />;
   }
 

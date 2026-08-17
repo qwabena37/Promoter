@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../services/api";
+
 import {
   FaUsers,
   FaImages,
@@ -19,14 +20,13 @@ export default function AdminDashboard() {
 
   const [entrepreneurs, setEntrepreneurs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   const [search, setSearch] = useState("");
 
   const [showForm, setShowForm] = useState(false);
-
-  const [editingEntrepreneur, setEditingEntrepreneur] =
-    useState(null);
+  const [editingEntrepreneur, setEditingEntrepreneur] = useState(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -44,22 +44,20 @@ export default function AdminDashboard() {
     image: null,
   });
 
-  const API_URL =
-    import.meta.env.VITE_API_URL ||
-    "http://127.0.0.1:8000/api";
-
-  const token = localStorage.getItem("access");
-
   /* =========================================================
-     AXIOS CONFIG
+     CHECK LOGIN
   ========================================================== */
 
-  const api = axios.create({
-    baseURL: API_URL,
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  useEffect(() => {
+    const token = localStorage.getItem("access");
+
+    if (!token) {
+      navigate("/admin/login");
+      return;
+    }
+
+    loadEntrepreneurs();
+  }, []);
 
   /* =========================================================
      LOAD ENTREPRENEURS
@@ -70,34 +68,26 @@ export default function AdminDashboard() {
       setLoading(true);
       setError("");
 
+      console.log("Fetching entrepreneurs...");
+
       const response = await api.get("/entrepreneurs/");
 
-      setEntrepreneurs(response.data);
+      console.log("Entrepreneurs response:", response.data);
 
+      setEntrepreneurs(response.data);
     } catch (error) {
-      console.error(error);
+      console.error("Error loading entrepreneurs:", error);
 
       if (error.response?.status === 401) {
         handleLogout();
         return;
       }
 
-      setError(
-        "Unable to load entrepreneurs."
-      );
+      setError("Unable to load entrepreneurs.");
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (!token) {
-      navigate("/admin/login");
-      return;
-    }
-
-    loadEntrepreneurs();
-  }, []);
 
   /* =========================================================
      LOGOUT
@@ -115,8 +105,7 @@ export default function AdminDashboard() {
   ========================================================== */
 
   const handleChange = (e) => {
-    const { name, value, type, checked, files } =
-      e.target;
+    const { name, value, type, checked, files } = e.target;
 
     setFormData((previous) => ({
       ...previous,
@@ -124,18 +113,16 @@ export default function AdminDashboard() {
         type === "checkbox"
           ? checked
           : type === "file"
-          ? files[0]
+          ? files?.[0] || null
           : value,
     }));
   };
 
   /* =========================================================
-     OPEN ADD FORM
+     RESET FORM
   ========================================================== */
 
-  const openAddForm = () => {
-    setEditingEntrepreneur(null);
-
+  const resetForm = () => {
     setFormData({
       name: "",
       title: "",
@@ -151,7 +138,15 @@ export default function AdminDashboard() {
       featured: false,
       image: null,
     });
+  };
 
+  /* =========================================================
+     OPEN ADD FORM
+  ========================================================== */
+
+  const openAddForm = () => {
+    setEditingEntrepreneur(null);
+    resetForm();
     setShowForm(true);
   };
 
@@ -182,6 +177,16 @@ export default function AdminDashboard() {
   };
 
   /* =========================================================
+     CLOSE FORM
+  ========================================================== */
+
+  const closeForm = () => {
+    setShowForm(false);
+    setEditingEntrepreneur(null);
+    resetForm();
+  };
+
+  /* =========================================================
      SAVE ENTREPRENEUR
   ========================================================== */
 
@@ -189,6 +194,8 @@ export default function AdminDashboard() {
     e.preventDefault();
 
     try {
+      setSaving(true);
+
       const data = new FormData();
 
       data.append("name", formData.name);
@@ -206,60 +213,60 @@ export default function AdminDashboard() {
 
       data.append(
         "featured",
-        formData.featured
+        formData.featured ? "true" : "false"
       );
 
       if (formData.image) {
-        data.append(
-          "image",
-          formData.image
-        );
+        data.append("image", formData.image);
       }
 
-      if (editingEntrepreneur) {
+      let response;
 
-        await api.put(
+      if (editingEntrepreneur) {
+        response = await api.put(
           `/entrepreneurs/${editingEntrepreneur.id}/`,
           data,
           {
             headers: {
-              "Content-Type":
-                "multipart/form-data",
+              "Content-Type": "multipart/form-data",
             },
           }
         );
 
+        console.log("Entrepreneur updated:", response.data);
       } else {
-
-        await api.post(
+        response = await api.post(
           "/entrepreneurs/",
           data,
           {
             headers: {
-              "Content-Type":
-                "multipart/form-data",
+              "Content-Type": "multipart/form-data",
             },
           }
         );
+
+        console.log("Entrepreneur created:", response.data);
       }
 
-      setShowForm(false);
-
-      setEditingEntrepreneur(null);
+      closeForm();
 
       await loadEntrepreneurs();
-
     } catch (error) {
-      console.error(error);
+      console.error("Error saving entrepreneur:", error);
 
       if (error.response?.status === 401) {
         handleLogout();
         return;
       }
 
+      console.error("Backend response:", error.response?.data);
+
       alert(
-        "Unable to save entrepreneur."
+        error.response?.data?.detail ||
+          "Unable to save entrepreneur. Please check the form and try again."
       );
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -275,14 +282,11 @@ export default function AdminDashboard() {
     if (!confirmed) return;
 
     try {
-      await api.delete(
-        `/entrepreneurs/${id}/`
-      );
+      await api.delete(`/entrepreneurs/${id}/`);
 
       await loadEntrepreneurs();
-
     } catch (error) {
-      console.error(error);
+      console.error("Delete error:", error);
 
       if (error.response?.status === 401) {
         handleLogout();
@@ -290,7 +294,8 @@ export default function AdminDashboard() {
       }
 
       alert(
-        "Unable to delete entrepreneur."
+        error.response?.data?.detail ||
+          "Unable to delete entrepreneur."
       );
     }
   };
@@ -299,43 +304,31 @@ export default function AdminDashboard() {
      SEARCH
   ========================================================== */
 
-  const filteredEntrepreneurs =
-    entrepreneurs.filter((person) => {
-      const query =
-        search.toLowerCase();
+  const filteredEntrepreneurs = entrepreneurs.filter((person) => {
+    const query = search.toLowerCase();
 
-      return (
-        person.name
-          ?.toLowerCase()
-          .includes(query) ||
-        person.title
-          ?.toLowerCase()
-          .includes(query) ||
-        person.location
-          ?.toLowerCase()
-          .includes(query)
-      );
-    });
+    return (
+      person.name?.toLowerCase().includes(query) ||
+      person.title?.toLowerCase().includes(query) ||
+      person.location?.toLowerCase().includes(query)
+    );
+  });
 
   /* =========================================================
      STATISTICS
   ========================================================== */
 
-  const totalEntrepreneurs =
-    entrepreneurs.length;
+  const totalEntrepreneurs = entrepreneurs.length;
 
-  const featuredCount =
-    entrepreneurs.filter(
-      (person) => person.featured
-    ).length;
+  const featuredCount = entrepreneurs.filter(
+    (person) => person.featured
+  ).length;
 
-  const totalWorks =
-    entrepreneurs.reduce(
-      (total, person) =>
-        total +
-        (person.gallery?.length || 0),
-      0
-    );
+  const totalWorks = entrepreneurs.reduce(
+    (total, person) =>
+      total + (person.gallery?.length || 0),
+    0
+  );
 
   /* =========================================================
      RENDER
@@ -344,18 +337,13 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-slate-100">
 
-      {/* =====================================================
-          HEADER
-      ====================================================== */}
-
+      {/* HEADER */}
       <header className="bg-slate-900 text-white shadow-lg">
-
         <div className="max-w-7xl mx-auto px-6 py-5">
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
 
             <div>
-
               <h1 className="text-2xl font-bold">
                 Admin Dashboard
               </h1>
@@ -363,24 +351,16 @@ export default function AdminDashboard() {
               <p className="text-slate-400 text-sm mt-1">
                 Young Entrepreneurs Hub
               </p>
-
             </div>
 
             <div className="flex items-center gap-3">
 
               <button
-                onClick={() =>
-                  navigate("/")
-                }
+                onClick={() => navigate("/")}
                 className="
-                  flex
-                  items-center
-                  gap-2
-                  px-4
-                  py-2
-                  rounded-lg
-                  border
-                  border-slate-600
+                  flex items-center gap-2
+                  px-4 py-2 rounded-lg
+                  border border-slate-600
                   hover:bg-slate-800
                   transition
                 "
@@ -392,12 +372,8 @@ export default function AdminDashboard() {
               <button
                 onClick={handleLogout}
                 className="
-                  flex
-                  items-center
-                  gap-2
-                  px-4
-                  py-2
-                  rounded-lg
+                  flex items-center gap-2
+                  px-4 py-2 rounded-lg
                   bg-red-500
                   hover:bg-red-600
                   transition
@@ -408,33 +384,22 @@ export default function AdminDashboard() {
               </button>
 
             </div>
-
           </div>
 
         </div>
-
       </header>
 
-      {/* =====================================================
-          CONTENT
-      ====================================================== */}
-
+      {/* CONTENT */}
       <main className="max-w-7xl mx-auto px-6 py-10">
 
-        {/* ===================================================
-            STATISTICS
-        ==================================================== */}
-
+        {/* STATISTICS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
 
           {/* Entrepreneurs */}
-
           <div className="bg-white rounded-xl shadow-sm p-6">
-
             <div className="flex items-center justify-between">
 
               <div>
-
                 <p className="text-slate-500 text-sm">
                   Entrepreneurs
                 </p>
@@ -442,27 +407,20 @@ export default function AdminDashboard() {
                 <h2 className="text-3xl font-bold text-slate-900 mt-2">
                   {totalEntrepreneurs}
                 </h2>
-
               </div>
 
               <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
-
                 <FaUsers />
-
               </div>
 
             </div>
-
           </div>
 
           {/* Work Images */}
-
           <div className="bg-white rounded-xl shadow-sm p-6">
-
             <div className="flex items-center justify-between">
 
               <div>
-
                 <p className="text-slate-500 text-sm">
                   Work Images
                 </p>
@@ -470,27 +428,20 @@ export default function AdminDashboard() {
                 <h2 className="text-3xl font-bold text-slate-900 mt-2">
                   {totalWorks}
                 </h2>
-
               </div>
 
               <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">
-
                 <FaImages />
-
               </div>
 
             </div>
-
           </div>
 
           {/* Featured */}
-
           <div className="bg-white rounded-xl shadow-sm p-6">
-
             <div className="flex items-center justify-between">
 
               <div>
-
                 <p className="text-slate-500 text-sm">
                   Featured
                 </p>
@@ -498,33 +449,26 @@ export default function AdminDashboard() {
                 <h2 className="text-3xl font-bold text-slate-900 mt-2">
                   {featuredCount}
                 </h2>
-
               </div>
 
               <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-500 flex items-center justify-center">
-
                 <FaStar />
-
               </div>
 
             </div>
-
           </div>
 
         </div>
 
-        {/* ===================================================
-            ENTREPRENEURS HEADER
-        ==================================================== */}
-
+        {/* ENTREPRENEURS */}
         <div className="bg-white rounded-xl shadow-sm">
 
+          {/* HEADER */}
           <div className="p-6 border-b border-slate-200">
 
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
 
               <div>
-
                 <h2 className="text-xl font-bold text-slate-900">
                   Entrepreneurs
                 </h2>
@@ -532,21 +476,16 @@ export default function AdminDashboard() {
                 <p className="text-slate-500 text-sm mt-1">
                   Manage entrepreneur profiles and businesses.
                 </p>
-
               </div>
 
               <button
                 onClick={openAddForm}
                 className="
-                  flex
-                  items-center
-                  justify-center
-                  gap-2
+                  flex items-center justify-center gap-2
                   bg-amber-400
                   hover:bg-amber-500
                   text-slate-900
-                  px-5
-                  py-3
+                  px-5 py-3
                   rounded-lg
                   font-semibold
                   transition
@@ -560,17 +499,14 @@ export default function AdminDashboard() {
 
           </div>
 
-          {/* Search */}
-
+          {/* SEARCH */}
           <div className="p-6">
 
             <div className="relative">
 
               <FaSearch
                 className="
-                  absolute
-                  left-4
-                  top-1/2
+                  absolute left-4 top-1/2
                   -translate-y-1/2
                   text-slate-400
                 "
@@ -579,17 +515,12 @@ export default function AdminDashboard() {
               <input
                 type="text"
                 value={search}
-                onChange={(e) =>
-                  setSearch(e.target.value)
-                }
+                onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search entrepreneurs..."
                 className="
                   w-full
-                  pl-11
-                  pr-4
-                  py-3
-                  border
-                  border-slate-300
+                  pl-11 pr-4 py-3
+                  border border-slate-300
                   rounded-lg
                   outline-none
                   focus:border-amber-400
@@ -602,10 +533,7 @@ export default function AdminDashboard() {
 
           </div>
 
-          {/* =================================================
-              TABLE
-          ================================================== */}
-
+          {/* TABLE */}
           {loading ? (
 
             <div className="p-10 text-center text-slate-500">
@@ -631,7 +559,6 @@ export default function AdminDashboard() {
               <table className="w-full">
 
                 <thead className="bg-slate-50">
-
                   <tr>
 
                     <th className="text-left px-6 py-4 text-sm font-semibold text-slate-600">
@@ -655,122 +582,117 @@ export default function AdminDashboard() {
                     </th>
 
                   </tr>
-
                 </thead>
 
                 <tbody className="divide-y divide-slate-100">
 
-                  {filteredEntrepreneurs.map(
-                    (person) => (
+                  {filteredEntrepreneurs.map((person) => (
 
-                      <tr
-                        key={person.id}
-                        className="hover:bg-slate-50"
-                      >
+                    <tr
+                      key={person.id}
+                      className="hover:bg-slate-50"
+                    >
 
-                        <td className="px-6 py-4">
+                      <td className="px-6 py-4">
 
-                          <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3">
 
-                            <img
-                              src={person.image}
-                              alt={person.name}
-                              className="
-                                w-12
-                                h-12
-                                rounded-lg
-                                object-cover
-                                bg-slate-100
-                              "
-                            />
+                          <img
+                            src={
+                              person.image ||
+                              "/placeholder.jpg"
+                            }
+                            alt={person.name}
+                            className="
+                              w-12 h-12
+                              rounded-lg
+                              object-cover
+                              bg-slate-100
+                            "
+                          />
 
-                            <div>
-
-                              <p className="font-semibold text-slate-900">
-                                {person.name}
-                              </p>
-
-                            </div>
-
+                          <div>
+                            <p className="font-semibold text-slate-900">
+                              {person.name}
+                            </p>
                           </div>
 
-                        </td>
+                        </div>
 
-                        <td className="px-6 py-4 text-slate-600">
-                          {person.title}
-                        </td>
+                      </td>
 
-                        <td className="px-6 py-4 text-slate-600">
-                          {person.location}
-                        </td>
+                      <td className="px-6 py-4 text-slate-600">
+                        {person.title}
+                      </td>
 
-                        <td className="px-6 py-4">
+                      <td className="px-6 py-4 text-slate-600">
+                        {person.location}
+                      </td>
 
-                          {person.featured ? (
+                      <td className="px-6 py-4">
 
-                            <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-semibold">
-                              <FaStar />
-                              Featured
-                            </span>
+                        {person.featured ? (
 
-                          ) : (
+                          <span className="
+                            inline-flex items-center gap-1
+                            bg-amber-100
+                            text-amber-700
+                            px-3 py-1
+                            rounded-full
+                            text-xs
+                            font-semibold
+                          ">
+                            <FaStar />
+                            Featured
+                          </span>
 
-                            <span className="text-slate-400 text-sm">
-                              No
-                            </span>
+                        ) : (
 
-                          )}
+                          <span className="text-slate-400 text-sm">
+                            No
+                          </span>
 
-                        </td>
+                        )}
 
-                        <td className="px-6 py-4">
+                      </td>
 
-                          <div className="flex justify-end gap-2">
+                      <td className="px-6 py-4">
 
-                            <button
-                              onClick={() =>
-                                openEditForm(
-                                  person
-                                )
-                              }
-                              className="
-                                p-2
-                                rounded-lg
-                                bg-blue-50
-                                text-blue-600
-                                hover:bg-blue-100
-                              "
-                              title="Edit"
-                            >
-                              <FaEdit />
-                            </button>
+                        <div className="flex justify-end gap-2">
 
-                            <button
-                              onClick={() =>
-                                handleDelete(
-                                  person.id
-                                )
-                              }
-                              className="
-                                p-2
-                                rounded-lg
-                                bg-red-50
-                                text-red-600
-                                hover:bg-red-100
-                              "
-                              title="Delete"
-                            >
-                              <FaTrash />
-                            </button>
+                          <button
+                            onClick={() => openEditForm(person)}
+                            className="
+                              p-2 rounded-lg
+                              bg-blue-50
+                              text-blue-600
+                              hover:bg-blue-100
+                            "
+                            title="Edit"
+                          >
+                            <FaEdit />
+                          </button>
 
-                          </div>
+                          <button
+                            onClick={() => handleDelete(person.id)}
+                            className="
+                              p-2 rounded-lg
+                              bg-red-50
+                              text-red-600
+                              hover:bg-red-100
+                            "
+                            title="Delete"
+                          >
+                            <FaTrash />
+                          </button>
 
-                        </td>
+                        </div>
 
-                      </tr>
+                      </td>
 
-                    )
-                  )}
+                    </tr>
+
+                  ))}
 
                 </tbody>
 
@@ -784,13 +706,16 @@ export default function AdminDashboard() {
 
       </main>
 
-      {/* =====================================================
-          ADD / EDIT MODAL
-      ====================================================== */}
-
+      {/* ADD / EDIT MODAL */}
       {showForm && (
 
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+        <div className="
+          fixed inset-0
+          bg-black/70
+          z-50
+          flex items-center justify-center
+          p-4
+        ">
 
           <div className="
             bg-white
@@ -802,9 +727,15 @@ export default function AdminDashboard() {
             shadow-2xl
           ">
 
-            {/* Modal Header */}
-
-            <div className="sticky top-0 bg-white border-b border-slate-200 px-6 py-5 flex justify-between items-center z-10">
+            {/* MODAL HEADER */}
+            <div className="
+              sticky top-0
+              bg-white
+              border-b border-slate-200
+              px-6 py-5
+              flex justify-between items-center
+              z-10
+            ">
 
               <div>
 
@@ -821,18 +752,13 @@ export default function AdminDashboard() {
               </div>
 
               <button
-                onClick={() =>
-                  setShowForm(false)
-                }
+                onClick={closeForm}
                 className="
-                  w-9
-                  h-9
+                  w-9 h-9
                   rounded-lg
                   bg-slate-100
                   hover:bg-slate-200
-                  flex
-                  items-center
-                  justify-center
+                  flex items-center justify-center
                 "
               >
                 <FaTimes />
@@ -840,15 +766,13 @@ export default function AdminDashboard() {
 
             </div>
 
-            {/* Form */}
-
+            {/* FORM */}
             <form
               onSubmit={handleSubmit}
               className="p-6 space-y-6"
             >
 
-              {/* Basic Information */}
-
+              {/* BASIC INFORMATION */}
               <div>
 
                 <h3 className="font-bold text-slate-900 mb-4">
@@ -890,8 +814,7 @@ export default function AdminDashboard() {
 
               </div>
 
-              {/* Description */}
-
+              {/* DESCRIPTION */}
               <div>
 
                 <label className="block font-semibold text-sm mb-2">
@@ -909,8 +832,7 @@ export default function AdminDashboard() {
 
               </div>
 
-              {/* Profile Image */}
-
+              {/* IMAGE */}
               <div>
 
                 <label className="block font-semibold text-sm mb-2">
@@ -924,8 +846,7 @@ export default function AdminDashboard() {
                   onChange={handleChange}
                   className="
                     w-full
-                    border
-                    border-slate-300
+                    border border-slate-300
                     rounded-lg
                     p-3
                   "
@@ -933,8 +854,7 @@ export default function AdminDashboard() {
 
               </div>
 
-              {/* Video */}
-
+              {/* VIDEO */}
               <div>
 
                 <label className="block font-semibold text-sm mb-2">
@@ -952,8 +872,7 @@ export default function AdminDashboard() {
 
               </div>
 
-              {/* Social Media */}
-
+              {/* SOCIAL MEDIA */}
               <div>
 
                 <h3 className="font-bold text-slate-900 mb-4">
@@ -1020,8 +939,7 @@ export default function AdminDashboard() {
 
               </div>
 
-              {/* Featured */}
-
+              {/* FEATURED */}
               <label className="flex items-center gap-3 cursor-pointer">
 
                 <input
@@ -1038,21 +956,16 @@ export default function AdminDashboard() {
 
               </label>
 
-              {/* Buttons */}
-
+              {/* BUTTONS */}
               <div className="flex justify-end gap-3 pt-4 border-t">
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setShowForm(false)
-                  }
+                  onClick={closeForm}
                   className="
-                    px-5
-                    py-3
+                    px-5 py-3
                     rounded-lg
-                    border
-                    border-slate-300
+                    border border-slate-300
                     hover:bg-slate-100
                   "
                 >
@@ -1061,17 +974,20 @@ export default function AdminDashboard() {
 
                 <button
                   type="submit"
+                  disabled={saving}
                   className="
-                    px-6
-                    py-3
+                    px-6 py-3
                     rounded-lg
                     bg-amber-400
                     hover:bg-amber-500
+                    disabled:bg-slate-300
                     text-slate-900
                     font-bold
                   "
                 >
-                  {editingEntrepreneur
+                  {saving
+                    ? "Saving..."
+                    : editingEntrepreneur
                     ? "Update Entrepreneur"
                     : "Save Entrepreneur"}
                 </button>
