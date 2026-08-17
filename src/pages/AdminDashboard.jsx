@@ -1239,7 +1239,7 @@ export default function AdminDashboard() {
                 <input
                   type="file"
                   name="image"
-                  accept="image/jpeg,image/png,image/webp"
+                  accept=".jpeg,.png, .jpg,.webp"
                   onChange={handleChange}
                   className="
                     w-full
