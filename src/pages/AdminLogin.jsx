@@ -22,19 +22,16 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Always use the API endpoint with /api
-  const API_URL =
+  const API_URL = (
     import.meta.env.VITE_API_URL ||
-    "https://promoter-backend-v2jk.onrender.com/api";
-
-  // Remove trailing slash if one exists
-  const API_BASE_URL = API_URL.replace(/\/+$/, "");
+    "http://127.0.0.1:8000/api"
+  ).replace(/\/+$/, "");
 
   const handleChange = (e) => {
-    setFormData((previous) => ({
-      ...previous,
+    setFormData({
+      ...formData,
       [e.target.name]: e.target.value,
-    }));
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -43,15 +40,16 @@ export default function AdminLogin() {
     setError("");
     setLoading(true);
 
+    const loginURL = `${API_URL}/token/`;
+
+    console.log("API URL:", API_URL);
+    console.log("Login URL:", loginURL);
+
     try {
-      const loginUrl = `${API_BASE_URL}/token/`;
-
-      console.log("Admin login URL:", loginUrl);
-
       const response = await axios.post(
-        loginUrl,
+        loginURL,
         {
-          username: formData.username.trim(),
+          username: formData.username,
           password: formData.password,
         },
         {
@@ -65,46 +63,36 @@ export default function AdminLogin() {
 
       const { access, refresh } = response.data;
 
-      if (!access || !refresh) {
-        throw new Error("Authentication tokens were not returned.");
-      }
-
-      // Save JWT tokens
       localStorage.setItem("access", access);
       localStorage.setItem("refresh", refresh);
 
-      // Redirect to dashboard
-      navigate("/admin/dashboard", { replace: true });
+      navigate("/admin/dashboard");
 
     } catch (error) {
       console.error("Login error:", error);
 
       if (error.response) {
-        console.error(
-          "Server response:",
-          error.response.status,
-          error.response.data
-        );
-      }
+        console.log("Status:", error.response.status);
+        console.log("Response:", error.response.data);
 
-      if (error.response?.status === 401) {
-        setError("Invalid username or password.");
-      } else if (error.response?.status === 404) {
+        if (error.response.status === 401) {
+          setError("Invalid username or password.");
+        } else if (error.response.status === 404) {
+          setError(
+            "Login service could not be found. Please check the backend API configuration."
+          );
+        } else {
+          setError(
+            error.response.data?.detail ||
+              "Login failed. Please try again."
+          );
+        }
+      } else if (error.request) {
         setError(
-          "Login service could not be found. Please check the backend API configuration."
+          "The backend server could not be reached. Please try again."
         );
-      } else if (error.response?.status >= 500) {
-        setError(
-          "The server encountered an error. Please try again shortly."
-        );
-      } else if (error.response?.data?.detail) {
-        setError(error.response.data.detail);
-      } else if (error.message) {
-        setError(error.message);
       } else {
-        setError(
-          "Unable to connect to the server. Please try again."
-        );
+        setError("An unexpected error occurred.");
       }
     } finally {
       setLoading(false);
@@ -113,10 +101,9 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen bg-slate-100 flex items-center justify-center px-6 py-12">
-
       <div className="w-full max-w-md">
 
-        {/* Back to website */}
+        {/* Back */}
         <Link
           to="/"
           className="inline-flex items-center gap-2 text-slate-600 hover:text-amber-500 mb-6 transition"
@@ -125,12 +112,11 @@ export default function AdminLogin() {
           Back to website
         </Link>
 
-        {/* Login Card */}
+        {/* Card */}
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
 
           {/* Header */}
           <div className="bg-slate-900 text-white px-8 py-8 text-center">
-
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center">
               <FaUserShield className="text-2xl" />
             </div>
@@ -142,14 +128,10 @@ export default function AdminLogin() {
             <p className="text-slate-300 mt-2 text-sm">
               Young Entrepreneurs Hub
             </p>
-
           </div>
 
           {/* Form */}
-          <form
-            onSubmit={handleSubmit}
-            className="p-8"
-          >
+          <form onSubmit={handleSubmit} className="p-8">
 
             {/* Error */}
             {error && (
@@ -160,7 +142,6 @@ export default function AdminLogin() {
 
             {/* Username */}
             <div className="mb-5">
-
               <label
                 htmlFor="username"
                 className="block text-sm font-semibold text-slate-700 mb-2"
@@ -169,10 +150,7 @@ export default function AdminLogin() {
               </label>
 
               <div className="relative">
-
-                <FaUser
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                />
+                <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
 
                 <input
                   id="username"
@@ -185,13 +163,11 @@ export default function AdminLogin() {
                   autoComplete="username"
                   className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-lg outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition"
                 />
-
               </div>
             </div>
 
             {/* Password */}
             <div className="mb-6">
-
               <label
                 htmlFor="password"
                 className="block text-sm font-semibold text-slate-700 mb-2"
@@ -200,10 +176,7 @@ export default function AdminLogin() {
               </label>
 
               <div className="relative">
-
-                <FaLock
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                />
+                <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
 
                 <input
                   id="password"
@@ -219,28 +192,25 @@ export default function AdminLogin() {
 
                 <button
                   type="button"
-                  onClick={() => setShowPassword((previous) => !previous)}
+                  onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
-                  aria-label="Toggle password visibility"
                 >
                   {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
-
               </div>
             </div>
 
-            {/* Login Button */}
+            {/* Login */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-amber-400 hover:bg-amber-500 disabled:bg-slate-300 disabled:cursor-not-allowed text-slate-900 py-3 rounded-lg font-bold transition duration-300"
+              className="w-full bg-amber-400 hover:bg-amber-500 disabled:bg-slate-300 disabled:cursor-not-allowed text-slate-900 py-3 rounded-lg font-bold transition"
             >
               {loading ? "Signing in..." : "Sign In"}
             </button>
 
           </form>
 
-          {/* Footer */}
           <div className="border-t border-slate-100 px-8 py-5 text-center">
             <p className="text-xs text-slate-400">
               Authorized administrators only
@@ -248,7 +218,6 @@ export default function AdminLogin() {
           </div>
 
         </div>
-
       </div>
     </div>
   );
