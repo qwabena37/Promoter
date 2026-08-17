@@ -22,14 +22,19 @@ export default function AdminLogin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Always use the API endpoint with /api
   const API_URL =
-    import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
+    import.meta.env.VITE_API_URL ||
+    "https://promoter-backend-v2jk.onrender.com/api";
+
+  // Remove trailing slash if one exists
+  const API_BASE_URL = API_URL.replace(/\/+$/, "");
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
+    setFormData((previous) => ({
+      ...previous,
       [e.target.name]: e.target.value,
-    });
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -39,32 +44,66 @@ export default function AdminLogin() {
     setLoading(true);
 
     try {
+      const loginUrl = `${API_BASE_URL}/token/`;
+
+      console.log("Admin login URL:", loginUrl);
+
       const response = await axios.post(
-        `${API_URL}/token/`,
+        loginUrl,
         {
-          username: formData.username,
+          username: formData.username.trim(),
           password: formData.password,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
       );
 
+      console.log("Login successful");
+
       const { access, refresh } = response.data;
+
+      if (!access || !refresh) {
+        throw new Error("Authentication tokens were not returned.");
+      }
 
       // Save JWT tokens
       localStorage.setItem("access", access);
       localStorage.setItem("refresh", refresh);
 
-      // Go to dashboard
-      navigate("/admin/dashboard");
+      // Redirect to dashboard
+      navigate("/admin/dashboard", { replace: true });
 
     } catch (error) {
       console.error("Login error:", error);
 
+      if (error.response) {
+        console.error(
+          "Server response:",
+          error.response.status,
+          error.response.data
+        );
+      }
+
       if (error.response?.status === 401) {
         setError("Invalid username or password.");
+      } else if (error.response?.status === 404) {
+        setError(
+          "Login service could not be found. Please check the backend API configuration."
+        );
+      } else if (error.response?.status >= 500) {
+        setError(
+          "The server encountered an error. Please try again shortly."
+        );
+      } else if (error.response?.data?.detail) {
+        setError(error.response.data.detail);
+      } else if (error.message) {
+        setError(error.message);
       } else {
         setError(
-          error.response?.data?.detail ||
-            "Unable to connect to the server. Please try again."
+          "Unable to connect to the server. Please try again."
         );
       }
     } finally {
@@ -132,13 +171,7 @@ export default function AdminLogin() {
               <div className="relative">
 
                 <FaUser
-                  className="
-                    absolute
-                    left-4
-                    top-1/2
-                    -translate-y-1/2
-                    text-slate-400
-                  "
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                 />
 
                 <input
@@ -150,20 +183,7 @@ export default function AdminLogin() {
                   placeholder="Enter admin username"
                   required
                   autoComplete="username"
-                  className="
-                    w-full
-                    pl-11
-                    pr-4
-                    py-3
-                    border
-                    border-slate-300
-                    rounded-lg
-                    outline-none
-                    focus:border-amber-400
-                    focus:ring-2
-                    focus:ring-amber-100
-                    transition
-                  "
+                  className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-lg outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition"
                 />
 
               </div>
@@ -182,13 +202,7 @@ export default function AdminLogin() {
               <div className="relative">
 
                 <FaLock
-                  className="
-                    absolute
-                    left-4
-                    top-1/2
-                    -translate-y-1/2
-                    text-slate-400
-                  "
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                 />
 
                 <input
@@ -200,42 +214,16 @@ export default function AdminLogin() {
                   placeholder="Enter your password"
                   required
                   autoComplete="current-password"
-                  className="
-                    w-full
-                    pl-11
-                    pr-12
-                    py-3
-                    border
-                    border-slate-300
-                    rounded-lg
-                    outline-none
-                    focus:border-amber-400
-                    focus:ring-2
-                    focus:ring-amber-100
-                    transition
-                  "
+                  className="w-full pl-11 pr-12 py-3 border border-slate-300 rounded-lg outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition"
                 />
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setShowPassword(!showPassword)
-                  }
-                  className="
-                    absolute
-                    right-4
-                    top-1/2
-                    -translate-y-1/2
-                    text-slate-400
-                    hover:text-slate-700
-                  "
+                  onClick={() => setShowPassword((previous) => !previous)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
                   aria-label="Toggle password visibility"
                 >
-                  {showPassword ? (
-                    <FaEyeSlash />
-                  ) : (
-                    <FaEye />
-                  )}
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
 
               </div>
@@ -245,19 +233,7 @@ export default function AdminLogin() {
             <button
               type="submit"
               disabled={loading}
-              className="
-                w-full
-                bg-amber-400
-                hover:bg-amber-500
-                disabled:bg-slate-300
-                disabled:cursor-not-allowed
-                text-slate-900
-                py-3
-                rounded-lg
-                font-bold
-                transition
-                duration-300
-              "
+              className="w-full bg-amber-400 hover:bg-amber-500 disabled:bg-slate-300 disabled:cursor-not-allowed text-slate-900 py-3 rounded-lg font-bold transition duration-300"
             >
               {loading ? "Signing in..." : "Sign In"}
             </button>
