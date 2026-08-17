@@ -11,7 +11,6 @@ const api = axios.create({
 
 /* =========================================================
    REQUEST INTERCEPTOR
-   Attach JWT access token to protected requests
 ========================================================= */
 
 api.interceptors.request.use(
@@ -19,15 +18,15 @@ api.interceptors.request.use(
     const access = localStorage.getItem("access");
 
     if (access) {
-      config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${access}`;
     }
 
-    // Do NOT manually set Content-Type here.
-    // Axios will automatically handle:
-    // application/json
-    // multipart/form-data
-    // FormData boundaries, etc.
+    // FormData requests must NOT use application/json.
+    // Let the browser/Axios generate multipart/form-data
+    // together with the required boundary.
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
+    }
 
     return config;
   },
@@ -36,7 +35,7 @@ api.interceptors.request.use(
 
 /* =========================================================
    RESPONSE INTERCEPTOR
-   Automatically refresh expired access token
+   Automatically refresh expired access tokens
 ========================================================= */
 
 api.interceptors.response.use(
@@ -45,23 +44,18 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // No response from server
+    /*
+     * No response means network/server connection problem.
+     */
     if (!error.response) {
       return Promise.reject(error);
     }
 
     /*
-     * If access token expired, attempt refresh.
-     *
-     * Don't refresh:
-     * - login request
-     * - refresh request
-     * - a request that has already been retried
+     * Don't try refreshing login or refresh requests.
      */
-
     if (
       error.response.status === 401 &&
-      originalRequest &&
       !originalRequest._retry &&
       !originalRequest.url?.includes("/token/") &&
       !originalRequest.url?.includes("/token/refresh/")
@@ -71,8 +65,6 @@ api.interceptors.response.use(
       const refresh = localStorage.getItem("refresh");
 
       if (!refresh) {
-        console.warn("No refresh token available.");
-
         localStorage.removeItem("access");
         localStorage.removeItem("refresh");
 
@@ -101,8 +93,8 @@ api.interceptors.response.use(
         localStorage.setItem("access", newAccess);
 
         /*
-         * If SimpleJWT rotation is enabled,
-         * save the new refresh token too.
+         * If SimpleJWT rotates refresh tokens,
+         * save the new refresh token.
          */
         if (response.data.refresh) {
           localStorage.setItem(
@@ -111,26 +103,18 @@ api.interceptors.response.use(
           );
         }
 
-        console.log("Access token refreshed successfully.");
-
         /*
          * Attach the new token to the original request.
          */
-        originalRequest.headers =
-          originalRequest.headers || {};
-
         originalRequest.headers.Authorization =
           `Bearer ${newAccess}`;
 
-        /*
-         * Retry the original request.
-         */
         return api(originalRequest);
 
       } catch (refreshError) {
         console.error(
           "Session refresh failed:",
-          refreshError
+          refreshError.response?.data || refreshError
         );
 
         localStorage.removeItem("access");

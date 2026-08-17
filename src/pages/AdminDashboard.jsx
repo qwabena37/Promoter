@@ -218,378 +218,341 @@ export default function AdminDashboard() {
   ========================================================== */
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (saving) return;
+  if (saving) return;
 
-    setSaving(true);
-    setError("");
+  setSaving(true);
+  setError("");
 
-    try {
-      console.log("================================");
-      console.log("Saving entrepreneur...");
-      console.log("Edit mode:", Boolean(editingEntrepreneur));
-      console.log("================================");
+  try {
+    console.log("================================");
+    console.log("SAVING ENTREPRENEUR");
+    console.log("Edit mode:", Boolean(editingEntrepreneur));
+    console.log("================================");
 
-      const data = new FormData();
+    const form = new FormData();
 
-      /*
-       * BASIC INFORMATION
-       */
+    // =====================================================
+    // BASIC INFORMATION
+    // =====================================================
 
-      data.append(
-        "name",
-        formData.name.trim()
-      );
+    form.append("name", formData.name.trim());
+    form.append("title", formData.title.trim());
+    form.append("location", formData.location.trim());
+    form.append("description", formData.description.trim());
 
-      data.append(
-        "title",
-        formData.title.trim()
-      );
+    // =====================================================
+    // VIDEO
+    // =====================================================
 
-      data.append(
-        "location",
-        formData.location.trim()
-      );
-
-      data.append(
-        "description",
-        formData.description.trim()
-      );
-
-      /*
-       * VIDEO
-       *
-       * This is a URL.
-       * No video file is uploaded.
-       */
-
-      if (formData.video.trim()) {
-        data.append(
-          "video",
-          formData.video.trim()
-        );
-      }
-
-      /*
-       * SOCIAL MEDIA
-       */
-
-      if (formData.whatsapp.trim()) {
-        data.append(
-          "whatsapp",
-          formData.whatsapp.trim()
-        );
-      }
-
-      if (formData.instagram.trim()) {
-        data.append(
-          "instagram",
-          formData.instagram.trim()
-        );
-      }
-
-      if (formData.facebook.trim()) {
-        data.append(
-          "facebook",
-          formData.facebook.trim()
-        );
-      }
-
-      if (formData.tiktok.trim()) {
-        data.append(
-          "tiktok",
-          formData.tiktok.trim()
-        );
-      }
-
-      if (formData.youtube.trim()) {
-        data.append(
-          "youtube",
-          formData.youtube.trim()
-        );
-      }
-
-      if (formData.website.trim()) {
-        data.append(
-          "website",
-          formData.website.trim()
-        );
-      }
-
-      /*
-       * FEATURED
-       */
-
-      data.append(
-        "featured",
-        formData.featured ? "true" : "false"
-      );
-
-      /*
-       * IMAGE
-       */
-
-      if (formData.image instanceof File) {
-        console.log(
-          "Uploading image:",
-          formData.image.name,
-          formData.image.type,
-          formData.image.size
-        );
-
-        data.append(
-          "image",
-          formData.image
-        );
-      }
-
-      /*
-       * DEBUG FORMDATA
-       */
-
-      console.log("FormData:");
-
-      for (const [key, value] of data.entries()) {
-        if (value instanceof File) {
-          console.log(
-            key,
-            "=> FILE:",
-            value.name
-          );
-        } else {
-          console.log(
-            key,
-            "=>",
-            value
-          );
-        }
-      }
-
-      let response;
-
-      /*
-       * IMPORTANT:
-       *
-       * We deliberately override Content-Type.
-       * Axios/browser must generate the multipart
-       * boundary automatically.
-       */
-
-      const config = {
-        headers: {
-          "Content-Type": undefined,
-        },
-      };
-
-      /*
-       * UPDATE
-       */
-
-      if (editingEntrepreneur) {
-        console.log(
-          "Updating entrepreneur:",
-          editingEntrepreneur.id
-        );
-
-        response = await api.patch(
-          `/entrepreneurs/${editingEntrepreneur.id}/`,
-          data,
-          config
-        );
-
-        console.log(
-          "Update successful:",
-          response.data
-        );
-      }
-
-      /*
-       * CREATE
-       */
-
-      else {
-        console.log(
-          "Creating entrepreneur..."
-        );
-
-        response = await api.post(
-          "/entrepreneurs/",
-          data,
-          config
-        );
-
-        console.log(
-          "Creation successful:",
-          response.data
-        );
-      }
-
-      /*
-       * SUCCESS
-       */
-
-      closeForm();
-
-      await loadEntrepreneurs();
-
-    } catch (error) {
-      console.error(
-        "================================"
-      );
-
-      console.error(
-        "SAVE ENTREPRENEUR ERROR"
-      );
-
-      console.error(
-        "================================"
-      );
-
-      console.error(
-        "Error:",
-        error
-      );
-
-      console.error(
-        "Status:",
-        error.response?.status
-      );
-
-      console.error(
-        "Backend response:",
-        error.response?.data
-      );
-
-      /*
-       * SESSION EXPIRED
-       */
-
-      if (
-        error.response?.status === 401
-      ) {
-        handleLogout();
-        return;
-      }
-
-      /*
-       * PERMISSION ERROR
-       */
-
-      if (
-        error.response?.status === 403
-      ) {
-        alert(
-          "You are logged in, but your account does not have permission to create or edit entrepreneurs."
-        );
-
-        return;
-      }
-
-      /*
-       * VALIDATION ERROR
-       */
-
-      if (
-        error.response?.status === 400
-      ) {
-        const backendErrors =
-          error.response?.data;
-
-        console.error(
-          "Validation errors:",
-          backendErrors
-        );
-
-        let message =
-          "Please check the information entered.";
-
-        if (
-          backendErrors &&
-          typeof backendErrors === "object"
-        ) {
-          const messages =
-            Object.entries(
-              backendErrors
-            )
-              .map(
-                ([field, errors]) => {
-                  const errorMessage =
-                    Array.isArray(errors)
-                      ? errors.join(", ")
-                      : String(errors);
-
-                  return `${field}: ${errorMessage}`;
-                }
-              )
-              .join("\n");
-
-          if (messages) {
-            message = messages;
-          }
-        }
-
-        alert(message);
-
-        return;
-      }
-
-      /*
-       * IMAGE TOO LARGE
-       */
-
-      if (
-        error.response?.status === 413
-      ) {
-        alert(
-          "The image is too large. Please choose a smaller image."
-        );
-
-        return;
-      }
-
-      /*
-       * SERVER ERROR
-       */
-
-      if (
-        error.response?.status >= 500
-      ) {
-        alert(
-          "The server encountered an error while saving the entrepreneur. Check the Render backend logs."
-        );
-
-        return;
-      }
-
-      /*
-       * NETWORK ERROR
-       */
-
-      if (
-        error.request &&
-        !error.response
-      ) {
-        alert(
-          "The backend server could not be reached. Please check your internet connection and backend deployment."
-        );
-
-        return;
-      }
-
-      /*
-       * GENERAL ERROR
-       */
-
-      alert(
-        error.response?.data?.detail ||
-          "Unable to save entrepreneur. Please try again."
-      );
-
-    } finally {
-      setSaving(false);
+    if (formData.video?.trim()) {
+      form.append("video", formData.video.trim());
     }
-  };
+
+    // =====================================================
+    // SOCIAL MEDIA
+    // =====================================================
+
+    if (formData.whatsapp?.trim()) {
+      form.append("whatsapp", formData.whatsapp.trim());
+    }
+
+    if (formData.instagram?.trim()) {
+      form.append("instagram", formData.instagram.trim());
+    }
+
+    if (formData.facebook?.trim()) {
+      form.append("facebook", formData.facebook.trim());
+    }
+
+    if (formData.tiktok?.trim()) {
+      form.append("tiktok", formData.tiktok.trim());
+    }
+
+    if (formData.youtube?.trim()) {
+      form.append("youtube", formData.youtube.trim());
+    }
+
+    if (formData.website?.trim()) {
+      form.append("website", formData.website.trim());
+    }
+
+    // =====================================================
+    // FEATURED
+    // =====================================================
+
+    form.append(
+      "featured",
+      formData.featured ? "true" : "false"
+    );
+
+    // =====================================================
+    // IMAGE
+    // =====================================================
+
+    if (formData.image instanceof File) {
+      console.log("Uploading image:");
+      console.log("Name:", formData.image.name);
+      console.log("Type:", formData.image.type);
+      console.log("Size:", formData.image.size);
+
+      form.append("image", formData.image);
+    }
+
+    // =====================================================
+    // DEBUG FORMDATA
+    // =====================================================
+
+    console.log("================================");
+    console.log("FORM DATA");
+    console.log("================================");
+
+    for (const [key, value] of form.entries()) {
+      if (value instanceof File) {
+        console.log(
+          `${key} => FILE:`,
+          value.name,
+          value.type,
+          value.size
+        );
+      } else {
+        console.log(`${key} =>`, value);
+      }
+    }
+
+    // =====================================================
+    // AXIOS CONFIG
+    // =====================================================
+    //
+    // IMPORTANT:
+    //
+    // Do NOT manually set:
+    //
+    // Content-Type: multipart/form-data
+    //
+    // The browser/Axios must create the boundary automatically.
+    //
+    // We remove the JSON Content-Type inherited from api.js.
+    // =====================================================
+
+    const config = {
+      headers: {
+        "Content-Type": undefined,
+      },
+    };
+
+    let response;
+
+    // =====================================================
+    // UPDATE
+    // =====================================================
+
+    if (editingEntrepreneur) {
+      console.log(
+        "Updating entrepreneur:",
+        editingEntrepreneur.id
+      );
+
+      response = await api.patch(
+        `/entrepreneurs/${editingEntrepreneur.id}/`,
+        form,
+        config
+      );
+
+      console.log(
+        "Entrepreneur updated successfully:",
+        response.data
+      );
+    }
+
+    // =====================================================
+    // CREATE
+    // =====================================================
+
+    else {
+      console.log("Creating entrepreneur...");
+
+      response = await api.post(
+        "/entrepreneurs/",
+        form,
+        config
+      );
+
+      console.log(
+        "Entrepreneur created successfully:",
+        response.data
+      );
+    }
+
+    // =====================================================
+    // SUCCESS
+    // =====================================================
+
+    alert(
+      editingEntrepreneur
+        ? "Entrepreneur updated successfully."
+        : "Entrepreneur added successfully."
+    );
+
+    closeForm();
+
+    await loadEntrepreneurs();
+
+  } catch (error) {
+    console.error("================================");
+    console.error("SAVE ENTREPRENEUR ERROR");
+    console.error("================================");
+
+    console.error("Error:", error);
+
+    console.error(
+      "Status:",
+      error.response?.status
+    );
+
+    console.error(
+      "Backend response:",
+      error.response?.data
+    );
+
+    console.error(
+      "Request:",
+      error.config
+    );
+
+    // =====================================================
+    // 401 - UNAUTHORIZED
+    // =====================================================
+
+    if (error.response?.status === 401) {
+      console.error(
+        "401 Unauthorized - token may be invalid or expired."
+      );
+
+      handleLogout();
+      return;
+    }
+
+    // =====================================================
+    // 403 - FORBIDDEN
+    // =====================================================
+
+    if (error.response?.status === 403) {
+      alert(
+        "You are logged in, but your account does not have permission to create or edit entrepreneurs."
+      );
+
+      return;
+    }
+
+    // =====================================================
+    // 400 - VALIDATION ERROR
+    // =====================================================
+
+    if (error.response?.status === 400) {
+      const backendErrors =
+        error.response?.data;
+
+      console.error(
+        "Backend validation errors:",
+        backendErrors
+      );
+
+      let message =
+        "Please check the information entered.";
+
+      if (
+        backendErrors &&
+        typeof backendErrors === "object"
+      ) {
+        const messages = Object.entries(
+          backendErrors
+        )
+          .map(([field, errors]) => {
+            const errorMessage =
+              Array.isArray(errors)
+                ? errors.join(", ")
+                : String(errors);
+
+            return `${field}: ${errorMessage}`;
+          })
+          .join("\n");
+
+        if (messages) {
+          message = messages;
+        }
+      }
+
+      alert(message);
+
+      return;
+    }
+
+    // =====================================================
+    // 413 - FILE TOO LARGE
+    // =====================================================
+
+    if (error.response?.status === 413) {
+      alert(
+        "The image is too large. Please choose a smaller image."
+      );
+
+      return;
+    }
+
+    // =====================================================
+    // 415 - UNSUPPORTED MEDIA TYPE
+    // =====================================================
+
+    if (error.response?.status === 415) {
+      alert(
+        "The server rejected the uploaded data format. Please check the API's multipart/form-data configuration."
+      );
+
+      return;
+    }
+
+    // =====================================================
+    // 500 - SERVER ERROR
+    // =====================================================
+
+    if (error.response?.status >= 500) {
+      alert(
+        "The server encountered an error while saving the entrepreneur. Please check the Render backend logs."
+      );
+
+      return;
+    }
+
+    // =====================================================
+    // NETWORK ERROR
+    // =====================================================
+
+    if (
+      error.request &&
+      !error.response
+    ) {
+      alert(
+        "The backend server could not be reached. Please check your internet connection and backend deployment."
+      );
+
+      return;
+    }
+
+    // =====================================================
+    // GENERAL ERROR
+    // =====================================================
+
+    alert(
+      error.response?.data?.detail ||
+        "Unable to save entrepreneur. Please try again."
+    );
+
+  } finally {
+    setSaving(false);
+  }
+};
 
   /* =========================================================
      DELETE
