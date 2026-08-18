@@ -1,6 +1,14 @@
 
 import React, { useEffect, useState } from "react";
-import { FaHeart } from "react-icons/fa";
+import {
+  FaHeart,
+  FaWhatsapp,
+  FaInstagram,
+  FaFacebookF,
+  FaTiktok,
+  FaYoutube,
+  FaGlobe,
+} from "react-icons/fa";
 import api from "../services/api";
 
 export default function EntrepreneurCard({ person, onClick }) {
@@ -17,9 +25,6 @@ export default function EntrepreneurCard({ person, onClick }) {
 
   // =========================================================
   // WORK GALLERY
-  // Supports both:
-  // person.works
-  // person.gallery
   // =========================================================
 
   const gallery = Array.isArray(person?.works)
@@ -174,10 +179,7 @@ export default function EntrepreneurCard({ person, onClick }) {
         setLikesCount(
           Number(
             response.data?.likes_count ??
-              Math.max(
-                likesCount - 1,
-                0
-              )
+              Math.max(likesCount - 1, 0)
           )
         );
 
@@ -239,42 +241,42 @@ export default function EntrepreneurCard({ person, onClick }) {
           ? whatsappUrl ||
             person?.whatsapp
           : null,
-      icon: "💬",
+      icon: <FaWhatsapp />,
     },
     {
       name: "Instagram",
       url:
         socials.instagram ||
         person?.instagram,
-      icon: "📸",
+      icon: <FaInstagram />,
     },
     {
       name: "Facebook",
       url:
         socials.facebook ||
         person?.facebook,
-      icon: "f",
+      icon: <FaFacebookF />,
     },
     {
       name: "TikTok",
       url:
         socials.tiktok ||
         person?.tiktok,
-      icon: "♪",
+      icon: <FaTiktok />,
     },
     {
       name: "YouTube",
       url:
         socials.youtube ||
         person?.youtube,
-      icon: "▶",
+      icon: <FaYoutube />,
     },
     {
       name: "Website",
       url:
         socials.website ||
         person?.website,
-      icon: "🌐",
+      icon: <FaGlobe />,
     },
   ].filter((social) => social.url);
 
@@ -303,14 +305,10 @@ export default function EntrepreneurCard({ person, onClick }) {
   const getWorkImage = (work) => {
     if (!work) return null;
 
-    // If backend returns:
-    // "https://example.com/image.jpg"
     if (typeof work === "string") {
       return work;
     }
 
-    // If backend returns:
-    // { image: "https://example.com/image.jpg" }
     if (typeof work === "object") {
       return (
         work.image ||
