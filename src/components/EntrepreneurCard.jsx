@@ -1,18 +1,15 @@
-
 import React, { useEffect, useState } from "react";
-import {
-  FaHeart,
-  FaWhatsapp,
-  FaInstagram,
-  FaFacebookF,
-  FaTiktok,
-  FaYoutube,
-  FaGlobe,
-} from "react-icons/fa";
+import { FaHeart } from "react-icons/fa";
 import api from "../services/api";
 
-export default function EntrepreneurCard({ person, onClick }) {
-  const socials = person?.socials || {};
+export default function EntrepreneurCard({
+  person,
+  onClick,
+}) {
+  // =========================================================
+  // SOCIAL DATA
+  // =========================================================
+
 
   // =========================================================
   // PROFILE IMAGE
@@ -24,7 +21,7 @@ export default function EntrepreneurCard({ person, onClick }) {
     null;
 
   // =========================================================
-  // WORK GALLERY
+  // GALLERY COMPATIBILITY
   // =========================================================
 
   const gallery = Array.isArray(person?.works)
@@ -32,6 +29,10 @@ export default function EntrepreneurCard({ person, onClick }) {
     : Array.isArray(person?.gallery)
     ? person.gallery
     : [];
+
+  // Gallery remains available for compatibility
+  // and for the EntrepreneurModal.
+  void gallery;
 
   // =========================================================
   // LIKE STATES
@@ -53,7 +54,10 @@ export default function EntrepreneurCard({ person, onClick }) {
     setLikesCount(
       Number(person?.likes_count || 0)
     );
-  }, [person?.id, person?.likes_count]);
+  }, [
+    person?.id,
+    person?.likes_count,
+  ]);
 
   // =========================================================
   // VISITOR ID
@@ -65,7 +69,28 @@ export default function EntrepreneurCard({ person, onClick }) {
     );
 
     if (!visitorId) {
-      visitorId = crypto.randomUUID();
+      if (
+        typeof crypto !== "undefined" &&
+        typeof crypto.randomUUID === "function"
+      ) {
+        visitorId = crypto.randomUUID();
+      } else {
+        visitorId =
+          "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+            /[xy]/g,
+            (character) => {
+              const random =
+                (Math.random() * 16) | 0;
+
+              const value =
+                character === "x"
+                  ? random
+                  : (random & 0x3) | 0x8;
+
+              return value.toString(16);
+            }
+          );
+      }
 
       localStorage.setItem(
         "entrepreneur_visitor_id",
@@ -115,9 +140,8 @@ export default function EntrepreneurCard({ person, onClick }) {
         ) || "[]"
       );
 
-      const entrepreneurId = String(
-        person.id
-      );
+      const entrepreneurId =
+        String(person.id);
 
       let updatedLikes;
 
@@ -129,14 +153,18 @@ export default function EntrepreneurCard({ person, onClick }) {
           ]),
         ];
       } else {
-        updatedLikes = storedLikes.filter(
-          (id) => id !== entrepreneurId
-        );
+        updatedLikes =
+          storedLikes.filter(
+            (id) =>
+              id !== entrepreneurId
+          );
       }
 
       localStorage.setItem(
         "liked_entrepreneurs",
-        JSON.stringify(updatedLikes)
+        JSON.stringify(
+          updatedLikes
+        )
       );
     } catch (error) {
       console.error(
@@ -158,28 +186,34 @@ export default function EntrepreneurCard({ person, onClick }) {
     try {
       setLiking(true);
 
-      const visitorId = getVisitorId();
+      const visitorId =
+        getVisitorId();
 
       // =====================================================
       // UNLIKE
       // =====================================================
 
       if (liked) {
-        const response = await api.delete(
-          `/entrepreneurs/${person.id}/like/`,
-          {
-            params: {
-              visitor_id: visitorId,
-            },
-          }
-        );
+        const response =
+          await api.delete(
+            `/entrepreneurs/${person.id}/like/`,
+            {
+              params: {
+                visitor_id:
+                  visitorId,
+              },
+            }
+          );
 
         setLiked(false);
 
         setLikesCount(
           Number(
             response.data?.likes_count ??
-              Math.max(likesCount - 1, 0)
+              Math.max(
+                likesCount - 1,
+                0
+              )
           )
         );
 
@@ -192,12 +226,14 @@ export default function EntrepreneurCard({ person, onClick }) {
       // LIKE
       // =====================================================
 
-      const response = await api.post(
-        `/entrepreneurs/${person.id}/like/`,
-        {
-          visitor_id: visitorId,
-        }
-      );
+      const response =
+        await api.post(
+          `/entrepreneurs/${person.id}/like/`,
+          {
+            visitor_id:
+              visitorId,
+          }
+        );
 
       setLiked(true);
 
@@ -209,7 +245,6 @@ export default function EntrepreneurCard({ person, onClick }) {
       );
 
       saveLikeStatus(true);
-
     } catch (error) {
       console.error(
         "Failed to update like:",
@@ -221,71 +256,12 @@ export default function EntrepreneurCard({ person, onClick }) {
   };
 
   // =========================================================
-  // SOCIAL LINKS
-  // =========================================================
-
-  const whatsappNumber = socials.whatsapp
-    ? socials.whatsapp.replace(/\D/g, "")
-    : "";
-
-  const whatsappUrl = whatsappNumber
-    ? `https://wa.me/${whatsappNumber}`
-    : null;
-
-  const socialLinks = [
-    {
-      name: "WhatsApp",
-      url:
-        socials.whatsapp ||
-        person?.whatsapp
-          ? whatsappUrl ||
-            person?.whatsapp
-          : null,
-      icon: <FaWhatsapp />,
-    },
-    {
-      name: "Instagram",
-      url:
-        socials.instagram ||
-        person?.instagram,
-      icon: <FaInstagram />,
-    },
-    {
-      name: "Facebook",
-      url:
-        socials.facebook ||
-        person?.facebook,
-      icon: <FaFacebookF />,
-    },
-    {
-      name: "TikTok",
-      url:
-        socials.tiktok ||
-        person?.tiktok,
-      icon: <FaTiktok />,
-    },
-    {
-      name: "YouTube",
-      url:
-        socials.youtube ||
-        person?.youtube,
-      icon: <FaYoutube />,
-    },
-    {
-      name: "Website",
-      url:
-        socials.website ||
-        person?.website,
-      icon: <FaGlobe />,
-    },
-  ].filter((social) => social.url);
-
-  // =========================================================
   // IMAGE FALLBACK
   // =========================================================
 
   const handleImageError = (event) => {
-    event.currentTarget.style.display = "none";
+    event.currentTarget.style.display =
+      "none";
 
     const fallback =
       event.currentTarget.parentElement?.querySelector(
@@ -293,36 +269,39 @@ export default function EntrepreneurCard({ person, onClick }) {
       );
 
     if (fallback) {
-      fallback.classList.remove("hidden");
-      fallback.classList.add("flex");
-    }
-  };
+      fallback.classList.remove(
+        "hidden"
+      );
 
-  // =========================================================
-  // WORK IMAGE URL
-  // =========================================================
-
-  const getWorkImage = (work) => {
-    if (!work) return null;
-
-    if (typeof work === "string") {
-      return work;
-    }
-
-    if (typeof work === "object") {
-      return (
-        work.image ||
-        work.url ||
-        null
+      fallback.classList.add(
+        "flex"
       );
     }
-
-    return null;
   };
+
+  // =========================================================
+  // OPEN ENTREPRENEUR PROFILE
+  // =========================================================
+
+  const handleOpenProfile = (event) => {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    if (!person) return;
+
+    if (typeof onClick === "function") {
+      onClick(person);
+    }
+  };
+
+  // =========================================================
+  // CARD
+  // =========================================================
 
   return (
     <article
-      onClick={() => onClick?.(person)}
+      onClick={handleOpenProfile}
       className="
         group
         bg-white
@@ -342,7 +321,6 @@ export default function EntrepreneurCard({ person, onClick }) {
         flex-col
       "
     >
-
       {/* =====================================================
           PROFILE IMAGE
       ====================================================== */}
@@ -350,11 +328,14 @@ export default function EntrepreneurCard({ person, onClick }) {
       <div
         className="
           relative
-          h-64
+          h-72
           bg-slate-100
           overflow-hidden
         "
       >
+        {/* =================================================
+            BLURRED BACKGROUND
+        ================================================== */}
 
         {profileImage && (
           <img
@@ -374,6 +355,10 @@ export default function EntrepreneurCard({ person, onClick }) {
           />
         )}
 
+        {/* =================================================
+            MAIN PROFILE IMAGE
+        ================================================== */}
+
         <div
           className="
             absolute
@@ -383,9 +368,7 @@ export default function EntrepreneurCard({ person, onClick }) {
             justify-center
           "
         >
-
           {profileImage ? (
-
             <img
               src={profileImage}
               alt={
@@ -404,9 +387,7 @@ export default function EntrepreneurCard({ person, onClick }) {
                 group-hover:scale-[1.02]
               "
             />
-
           ) : (
-
             <div
               className="
                 absolute
@@ -420,9 +401,7 @@ export default function EntrepreneurCard({ person, onClick }) {
                 text-slate-500
               "
             >
-
               <div className="text-center">
-
                 <div
                   className="
                     w-16
@@ -443,12 +422,13 @@ export default function EntrepreneurCard({ person, onClick }) {
                 <p className="mt-3 text-sm">
                   No image available
                 </p>
-
               </div>
-
             </div>
-
           )}
+
+          {/* =================================================
+              IMAGE FALLBACK
+          ================================================== */}
 
           {profileImage && (
             <div
@@ -465,9 +445,7 @@ export default function EntrepreneurCard({ person, onClick }) {
                 text-slate-500
               "
             >
-
               <div className="text-center">
-
                 <div
                   className="
                     w-16
@@ -488,30 +466,31 @@ export default function EntrepreneurCard({ person, onClick }) {
                 <p className="mt-3 text-sm">
                   No image available
                 </p>
-
               </div>
-
             </div>
           )}
-
         </div>
 
-        {/* BOTTOM GRADIENT */}
+        {/* =================================================
+            BOTTOM GRADIENT
+        ================================================== */}
 
         <div
           className="
             absolute
             inset-x-0
             bottom-0
-            h-24
+            h-28
             bg-gradient-to-t
-            from-black/40
+            from-black/50
             to-transparent
             pointer-events-none
           "
         />
 
-        {/* FEATURED */}
+        {/* =================================================
+            FEATURED
+        ================================================== */}
 
         {person?.featured && (
           <div
@@ -534,7 +513,9 @@ export default function EntrepreneurCard({ person, onClick }) {
           </div>
         )}
 
-        {/* LIKE BUTTON */}
+        {/* =================================================
+            LIKE BUTTON
+        ================================================== */}
 
         <button
           type="button"
@@ -574,7 +555,6 @@ export default function EntrepreneurCard({ person, onClick }) {
             }
           `}
         >
-
           <FaHeart
             className={`
               text-lg
@@ -597,10 +577,11 @@ export default function EntrepreneurCard({ person, onClick }) {
           >
             {likesCount}
           </span>
-
         </button>
 
-        {/* VIEW PROFILE */}
+        {/* =================================================
+            VIEW PROFILE HOVER LABEL
+        ================================================== */}
 
         <div
           className="
@@ -627,11 +608,10 @@ export default function EntrepreneurCard({ person, onClick }) {
         >
           View Profile
         </div>
-
       </div>
 
       {/* =====================================================
-          CONTENT
+          SIMPLE PROFILE CONTENT
       ====================================================== */}
 
       <div
@@ -642,25 +622,9 @@ export default function EntrepreneurCard({ person, onClick }) {
           flex-1
         "
       >
-
-        {/* =====================================================
-            INTRODUCTION
-        ====================================================== */}
-
-        <p
-          className="
-            text-xs
-            uppercase
-            tracking-[0.18em]
-            font-semibold
-            text-amber-500
-            mb-2
-          "
-        >
-          Hello there, meet
-        </p>
-
-        {/* NAME */}
+        {/* =================================================
+            NAME
+        ================================================== */}
 
         <h3
           className="
@@ -676,9 +640,11 @@ export default function EntrepreneurCard({ person, onClick }) {
             "Unnamed Entrepreneur"}
         </h3>
 
-        {/* TITLE */}
+        {/* =================================================
+            JOB / BUSINESS TITLE
+        ================================================== */}
 
-        {person?.title && (
+        {person?.title ? (
           <p
             className="
               mt-2
@@ -689,202 +655,36 @@ export default function EntrepreneurCard({ person, onClick }) {
           >
             {person.title}
           </p>
-        )}
-
-        {/* =====================================================
-            WORK GALLERY
-        ====================================================== */}
-
-        {gallery.length > 0 && (
-
-          <div className="mt-5">
-
-            <div
-              className="
-                flex
-                items-center
-                justify-between
-                mb-2
-              "
-            >
-
-              <span
-                className="
-                  text-xs
-                  font-semibold
-                  uppercase
-                  tracking-wide
-                  text-slate-500
-                "
-              >
-                Work Gallery
-              </span>
-
-              <span
-                className="
-                  text-xs
-                  text-slate-400
-                "
-              >
-                {gallery.length}{" "}
-                {gallery.length === 1
-                  ? "image"
-                  : "images"}
-              </span>
-
-            </div>
-
-            <div
-              className="
-                grid
-                grid-cols-3
-                gap-2
-              "
-            >
-
-              {gallery
-                .slice(0, 3)
-                .map((work, index) => {
-
-                  const image =
-                    getWorkImage(work);
-
-                  if (!image) {
-                    return null;
-                  }
-
-                  return (
-
-                    <div
-                      key={
-                        work?.id ||
-                        `${image}-${index}`
-                      }
-                      className="
-                        h-20
-                        rounded-xl
-                        overflow-hidden
-                        bg-slate-100
-                        shadow-sm
-                      "
-                    >
-
-                      <img
-                        src={image}
-                        alt={`
-                          ${person?.name ||
-                          "Entrepreneur"} work ${
-                          index + 1
-                        }
-                        `}
-                        onError={(event) => {
-                          event.currentTarget.style.display =
-                            "none";
-                        }}
-                        className="
-                          w-full
-                          h-full
-                          object-cover
-                          hover:scale-105
-                          transition-transform
-                          duration-300
-                        "
-                      />
-
-                    </div>
-
-                  );
-                })}
-
-            </div>
-
-          </div>
-
-        )}
-
-        {/* =====================================================
-            SOCIAL LINKS
-        ====================================================== */}
-
-        {socialLinks.length > 0 && (
-
-          <div
+        ) : (
+          <p
             className="
-              mt-5
-              pt-4
-              border-t
-              border-slate-100
+              mt-2
+              text-slate-400
+              text-sm
             "
           >
-
-            <div
-              className="
-                flex
-                flex-wrap
-                gap-2
-              "
-            >
-
-              {socialLinks.map((social) => (
-
-                <a
-                  key={social.name}
-                  href={social.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(event) =>
-                    event.stopPropagation()
-                  }
-                  title={social.name}
-                  className="
-                    w-9
-                    h-9
-                    rounded-full
-                    bg-slate-100
-                    hover:bg-slate-900
-                    hover:text-white
-                    text-slate-600
-                    flex
-                    items-center
-                    justify-center
-                    text-sm
-                    font-bold
-                    transition-all
-                    duration-200
-                  "
-                >
-                  {social.icon}
-                </a>
-
-              ))}
-
-            </div>
-
-          </div>
-
+            Entrepreneur
+          </p>
         )}
 
-        {/* =====================================================
-            BOTTOM ACTION
-        ====================================================== */}
+        {/* =================================================
+            EXPLORE BUTTON
+        ================================================== */}
 
         <div
           className="
             mt-auto
-            pt-5
+            pt-6
           "
         >
-
           <button
             type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              onClick?.(person);
-            }}
+            onClick={handleOpenProfile}
             className="
               w-full
               bg-slate-900
               hover:bg-blue-800
+              active:bg-blue-900
               text-white
               py-3
               px-4
@@ -894,16 +694,16 @@ export default function EntrepreneurCard({ person, onClick }) {
               duration-300
               shadow-sm
               hover:shadow-lg
+              focus:outline-none
+              focus:ring-2
+              focus:ring-blue-500
+              focus:ring-offset-2
             "
           >
             Explore Entrepreneur
           </button>
-
         </div>
-
       </div>
-
     </article>
   );
 }
-
