@@ -474,9 +474,10 @@ export default function EntrepreneurCard({
             absolute
             inset-x-0
             bottom-0
-            h-28
+            h-36
             bg-gradient-to-t
-            from-black/50
+            from-black/70
+            via-black/20
             to-transparent
             pointer-events-none
           "
@@ -508,27 +509,54 @@ export default function EntrepreneurCard({
         )}
 
         {/* =================================================
-            HELLO THERE
+            HELLO THERE / ENTREPRENEUR INTRO
         ================================================== */}
 
         <div
           className="
             absolute
-            bottom-4
-            left-4
-            bg-white/95
-            backdrop-blur-sm
-            text-slate-900
-            px-3
-            py-1.5
-            rounded-full
-            text-xs
-            font-semibold
-            shadow-lg
+            bottom-5
+            left-5
+            right-5
+            text-white
             z-10
+            pointer-events-none
           "
         >
-          Hello there
+          <p
+            className="
+              text-sm
+              font-medium
+              mb-1
+            "
+          >
+            Hello there 👋
+          </p>
+
+          <h3
+            className="
+              text-2xl
+              font-bold
+              leading-tight
+              drop-shadow-lg
+            "
+          >
+            Meet{" "}
+            {person?.name ||
+              "Our Entrepreneur"}
+          </h3>
+
+          <p
+            className="
+              mt-1
+              text-sm
+              font-medium
+              text-white/90
+            "
+          >
+            {person?.title ||
+              "Entrepreneur"}
+          </p>
         </div>
 
         {/* =================================================
@@ -725,4 +753,3 @@ export default function EntrepreneurCard({
     </article>
   );
 }
-
