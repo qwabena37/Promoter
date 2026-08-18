@@ -8,8 +8,6 @@ export default function EntrepreneurCard({ person, onClick }) {
   // PROFILE IMAGE
   // =========================================================
 
-  // Prefer the serializer's "image" field.
-  // Fall back to profile_image for compatibility.
   const profileImage =
     person?.image ||
     person?.profile_image ||
@@ -69,7 +67,7 @@ export default function EntrepreneurCard({ person, onClick }) {
   ].filter((social) => social.url);
 
   // =========================================================
-  // IMAGE FALLBACK
+  // IMAGE ERROR FALLBACK
   // =========================================================
 
   const handleImageError = (event) => {
@@ -82,12 +80,23 @@ export default function EntrepreneurCard({ person, onClick }) {
 
     if (fallback) {
       fallback.classList.remove("hidden");
+      fallback.classList.add("flex");
+    }
+  };
+
+  // =========================================================
+  // OPEN PROFILE
+  // =========================================================
+
+  const handleProfileClick = () => {
+    if (typeof onClick === "function") {
+      onClick(person);
     }
   };
 
   return (
     <article
-      onClick={onClick}
+      onClick={handleProfileClick}
       className="
         group
         bg-white
@@ -107,54 +116,50 @@ export default function EntrepreneurCard({ person, onClick }) {
         flex-col
       "
     >
-
       {/* =====================================================
           PROFILE IMAGE
       ====================================================== */}
 
-      <div className="
-        relative
-        h-64
-        bg-slate-100
-        overflow-hidden
-      ">
+      <div
+        className="
+          relative
+          w-full
+          h-64
+          sm:h-72
+          bg-slate-100
+          overflow-hidden
+        "
+      >
+        {profileImage ? (
+          <>
+            {/* ===============================================
+                BACKGROUND IMAGE
+            ================================================ */}
 
-        {/* =================================================
-            BLURRED BACKGROUND
-        ================================================== */}
+            <img
+              src={profileImage}
+              alt=""
+              aria-hidden="true"
+              className="
+                absolute
+                inset-0
+                w-full
+                h-full
+                object-cover
+                scale-110
+                blur-xl
+                opacity-20
+              "
+            />
 
-        {profileImage && (
-          <img
-            src={profileImage}
-            alt=""
-            aria-hidden="true"
-            className="
-              absolute
-              inset-0
-              w-full
-              h-full
-              object-cover
-              scale-110
-              blur-xl
-              opacity-25
-            "
-          />
-        )}
+            {/* ===============================================
+                MAIN PROFILE IMAGE
 
-        {/* =================================================
-            MAIN IMAGE CONTAINER
-        ================================================== */}
+                object-cover fills the entire card.
 
-        <div className="
-          absolute
-          inset-0
-          flex
-          items-center
-          justify-center
-          p-2
-        ">
-
-          {profileImage ? (
+                object-top keeps the head/top portion visible.
+                Any necessary cropping happens toward the bottom.
+            ================================================ */}
 
             <img
               src={profileImage}
@@ -165,24 +170,69 @@ export default function EntrepreneurCard({ person, onClick }) {
               onError={handleImageError}
               className="
                 relative
+                z-[1]
                 w-full
                 h-full
-                object-contain
-                rounded-2xl
-                drop-shadow-lg
+                object-cover
+                object-top
                 transition-transform
                 duration-500
-                group-hover:scale-[1.02]
+                group-hover:scale-[1.03]
               "
             />
 
-          ) : (
+            {/* ===============================================
+                IMAGE ERROR FALLBACK
+            ================================================ */}
 
-            /* =================================================
-               NO IMAGE FALLBACK
-            ================================================== */
+            <div
+              className="
+                image-fallback
+                hidden
+                absolute
+                inset-0
+                z-[2]
+                items-center
+                justify-center
+                bg-gradient-to-br
+                from-slate-200
+                to-slate-300
+                text-slate-500
+              "
+            >
+              <div className="text-center">
 
-            <div className="
+                <div
+                  className="
+                    w-16
+                    h-16
+                    mx-auto
+                    rounded-full
+                    bg-white
+                    flex
+                    items-center
+                    justify-center
+                    text-2xl
+                    shadow
+                  "
+                >
+                  👤
+                </div>
+
+                <p className="mt-3 text-sm">
+                  No image available
+                </p>
+
+              </div>
+            </div>
+          </>
+        ) : (
+          /* ===============================================
+             NO IMAGE
+          ================================================ */
+
+          <div
+            className="
               absolute
               inset-0
               flex
@@ -192,11 +242,12 @@ export default function EntrepreneurCard({ person, onClick }) {
               from-slate-200
               to-slate-300
               text-slate-500
-            ">
+            "
+          >
+            <div className="text-center">
 
-              <div className="text-center">
-
-                <div className="
+              <div
+                className="
                   w-16
                   h-16
                   mx-auto
@@ -207,160 +258,120 @@ export default function EntrepreneurCard({ person, onClick }) {
                   justify-center
                   text-2xl
                   shadow
-                ">
-                  👤
-                </div>
-
-                <p className="mt-3 text-sm">
-                  No image available
-                </p>
-
+                "
+              >
+                👤
               </div>
 
-            </div>
-
-          )}
-
-          {/* =================================================
-              IMAGE ERROR FALLBACK
-          ================================================== */}
-
-          {profileImage && (
-            <div
-              className="
-                image-fallback
-                hidden
-                absolute
-                inset-2
-                items-center
-                justify-center
-                rounded-2xl
-                bg-gradient-to-br
-                from-slate-200
-                to-slate-300
-                text-slate-500
-              "
-            >
-
-              <div className="text-center">
-
-                <div className="
-                  w-16
-                  h-16
-                  mx-auto
-                  rounded-full
-                  bg-white
-                  flex
-                  items-center
-                  justify-center
-                  text-2xl
-                  shadow
-                ">
-                  👤
-                </div>
-
-                <p className="mt-3 text-sm">
-                  No image available
-                </p>
-
-              </div>
+              <p className="mt-3 text-sm">
+                No image available
+              </p>
 
             </div>
-          )}
+          </div>
+        )}
 
-        </div>
-
-        {/* =================================================
+        {/* =====================================================
             BOTTOM IMAGE GRADIENT
-        ================================================== */}
+        ====================================================== */}
 
-        <div className="
-          absolute
-          inset-x-0
-          bottom-0
-          h-24
-          bg-gradient-to-t
-          from-black/30
-          to-transparent
-          pointer-events-none
-        " />
+        <div
+          className="
+            absolute
+            inset-x-0
+            bottom-0
+            h-28
+            bg-gradient-to-t
+            from-black/40
+            via-black/10
+            to-transparent
+            pointer-events-none
+            z-[3]
+          "
+        />
 
-        {/* =================================================
+        {/* =====================================================
             FEATURED BADGE
-        ================================================== */}
+        ====================================================== */}
 
         {person?.featured && (
-          <div className="
-            absolute
-            top-4
-            left-4
-            bg-amber-400
-            text-slate-900
-            px-3
-            py-1.5
-            rounded-full
-            text-xs
-            font-bold
-            shadow-lg
-            z-10
-          ">
+          <div
+            className="
+              absolute
+              top-4
+              left-4
+              bg-amber-400
+              text-slate-900
+              px-3
+              py-1.5
+              rounded-full
+              text-xs
+              font-bold
+              shadow-lg
+              z-10
+            "
+          >
             Featured
           </div>
         )}
 
-        {/* =================================================
+        {/* =====================================================
             VIEW PROFILE
-        ================================================== */}
+        ====================================================== */}
 
-        <div className="
-          absolute
-          bottom-4
-          right-4
-          bg-white/95
-          backdrop-blur-sm
-          text-slate-900
-          px-4
-          py-2
-          rounded-full
-          text-xs
-          font-semibold
-          opacity-0
-          translate-y-2
-          group-hover:opacity-100
-          group-hover:translate-y-0
-          transition-all
-          duration-300
-          shadow-lg
-          z-10
-        ">
+        <div
+          className="
+            absolute
+            bottom-4
+            right-4
+            bg-white/95
+            backdrop-blur-sm
+            text-slate-900
+            px-4
+            py-2
+            rounded-full
+            text-xs
+            font-semibold
+            opacity-0
+            translate-y-2
+            group-hover:opacity-100
+            group-hover:translate-y-0
+            transition-all
+            duration-300
+            shadow-lg
+            z-10
+          "
+        >
           View Profile
         </div>
-
       </div>
 
       {/* =====================================================
           CONTENT
       ====================================================== */}
 
-      <div className="
-        p-6
-        flex
-        flex-col
-        flex-1
-      ">
-
+      <div
+        className="
+          p-6
+          flex
+          flex-col
+          flex-1
+        "
+      >
         {/* =================================================
             NAME
         ================================================== */}
 
-        <h3 className="
-          text-xl
-          font-bold
-          text-slate-900
-          leading-tight
-          group-hover:text-blue-700
-          transition
-        ">
+        <h3
+          className="
+            text-xl
+            font-bold
+            text-slate-900
+            leading-tight
+            group-hover:text-blue-700
+            transition
+          "
+        >
           {person?.name ||
             "Unnamed Entrepreneur"}
         </h3>
@@ -370,12 +381,14 @@ export default function EntrepreneurCard({ person, onClick }) {
         ================================================== */}
 
         {person?.title && (
-          <p className="
-            mt-2
-            text-amber-500
-            font-semibold
-            text-sm
-          ">
+          <p
+            className="
+              mt-2
+              text-amber-500
+              font-semibold
+              text-sm
+            "
+          >
             {person.title}
           </p>
         )}
@@ -385,21 +398,21 @@ export default function EntrepreneurCard({ person, onClick }) {
         ================================================== */}
 
         {person?.location && (
-          <div className="
-            flex
-            items-center
-            gap-2
-            mt-3
-            text-sm
-            text-slate-500
-          ">
-
+          <div
+            className="
+              flex
+              items-center
+              gap-2
+              mt-3
+              text-sm
+              text-slate-500
+            "
+          >
             <span>📍</span>
 
             <span>
               {person.location}
             </span>
-
           </div>
         )}
 
@@ -408,13 +421,15 @@ export default function EntrepreneurCard({ person, onClick }) {
         ================================================== */}
 
         {person?.description && (
-          <p className="
-            mt-4
-            text-slate-600
-            text-sm
-            leading-relaxed
-            line-clamp-4
-          ">
+          <p
+            className="
+              mt-4
+              text-slate-600
+              text-sm
+              leading-relaxed
+              line-clamp-4
+            "
+          >
             {person.description}
           </p>
         )}
@@ -426,45 +441,49 @@ export default function EntrepreneurCard({ person, onClick }) {
         {gallery.length > 0 && (
           <div className="mt-5">
 
-            <div className="
-              flex
-              items-center
-              justify-between
-              mb-2
-            ">
-
-              <span className="
-                text-xs
-                font-semibold
-                uppercase
-                tracking-wide
-                text-slate-500
-              ">
+            <div
+              className="
+                flex
+                items-center
+                justify-between
+                mb-2
+              "
+            >
+              <span
+                className="
+                  text-xs
+                  font-semibold
+                  uppercase
+                  tracking-wide
+                  text-slate-500
+                "
+              >
                 Work Gallery
               </span>
 
-              <span className="
-                text-xs
-                text-slate-400
-              ">
+              <span
+                className="
+                  text-xs
+                  text-slate-400
+                "
+              >
                 {gallery.length}{" "}
                 {gallery.length === 1
                   ? "image"
                   : "images"}
               </span>
-
             </div>
 
-            <div className="
-              grid
-              grid-cols-3
-              gap-2
-            ">
-
+            <div
+              className="
+                grid
+                grid-cols-3
+                gap-2
+              "
+            >
               {gallery
                 .slice(0, 3)
                 .map((image, index) => (
-
                   <div
                     key={`${image}-${index}`}
                     className="
@@ -475,15 +494,11 @@ export default function EntrepreneurCard({ person, onClick }) {
                       shadow-sm
                     "
                   >
-
                     <img
                       src={image}
-                      alt={`
-                        ${person?.name ||
-                        "Entrepreneur"} work ${
+                      alt={`${person?.name || "Entrepreneur"} work ${
                         index + 1
-                      }
-                      `}
+                      }`}
                       className="
                         w-full
                         h-full
@@ -493,13 +508,9 @@ export default function EntrepreneurCard({ person, onClick }) {
                         duration-300
                       "
                     />
-
                   </div>
-
                 ))}
-
             </div>
-
           </div>
         )}
 
@@ -508,21 +519,22 @@ export default function EntrepreneurCard({ person, onClick }) {
         ================================================== */}
 
         {socialLinks.length > 0 && (
-          <div className="
-            mt-5
-            pt-4
-            border-t
-            border-slate-100
-          ">
-
-            <div className="
-              flex
-              flex-wrap
-              gap-2
-            ">
-
+          <div
+            className="
+              mt-5
+              pt-4
+              border-t
+              border-slate-100
+            "
+          >
+            <div
+              className="
+                flex
+                flex-wrap
+                gap-2
+              "
+            >
               {socialLinks.map((social) => (
-
                 <a
                   key={social.name}
                   href={social.url}
@@ -551,11 +563,8 @@ export default function EntrepreneurCard({ person, onClick }) {
                 >
                   {social.icon}
                 </a>
-
               ))}
-
             </div>
-
           </div>
         )}
 
@@ -563,16 +572,17 @@ export default function EntrepreneurCard({ person, onClick }) {
             BOTTOM ACTION
         ================================================== */}
 
-        <div className="
-          mt-auto
-          pt-5
-        ">
-
+        <div
+          className="
+            mt-auto
+            pt-5
+          "
+        >
           <button
             type="button"
             onClick={(event) => {
               event.stopPropagation();
-              onClick?.(person);
+              handleProfileClick();
             }}
             className="
               w-full
@@ -591,11 +601,8 @@ export default function EntrepreneurCard({ person, onClick }) {
           >
             Explore Entrepreneur
           </button>
-
         </div>
-
       </div>
-
     </article>
   );
 }
