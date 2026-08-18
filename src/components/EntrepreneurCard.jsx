@@ -1,5 +1,7 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { FaHeart } from "react-icons/fa";
+import api from "../services/api";
 
 export default function EntrepreneurCard({ person, onClick }) {
   const socials = person?.socials || {};
@@ -20,6 +22,199 @@ export default function EntrepreneurCard({ person, onClick }) {
   const gallery = Array.isArray(person?.gallery)
     ? person.gallery.filter(Boolean)
     : [];
+
+  // =========================================================
+  // LIKE STATES
+  // =========================================================
+
+  const [liked, setLiked] = useState(false);
+
+  const [likesCount, setLikesCount] = useState(
+    Number(person?.likes_count || 0)
+  );
+
+  const [liking, setLiking] = useState(false);
+
+  // =========================================================
+  // CREATE / GET VISITOR ID
+  // =========================================================
+
+  const getVisitorId = () => {
+    let visitorId = localStorage.getItem(
+      "entrepreneur_visitor_id"
+    );
+
+    if (!visitorId) {
+      visitorId = crypto.randomUUID();
+
+      localStorage.setItem(
+        "entrepreneur_visitor_id",
+        visitorId
+      );
+    }
+
+    return visitorId;
+  };
+
+  // =========================================================
+  // CHECK WHETHER THIS VISITOR ALREADY LIKED
+  // =========================================================
+
+  useEffect(() => {
+    const checkLikeStatus = async () => {
+      if (!person?.id) return;
+
+      try {
+        const visitorId = getVisitorId();
+
+        /*
+         * If your backend has a status endpoint,
+         * this can be replaced with that endpoint.
+         *
+         * For now we use localStorage to remember
+         * the visitor's liked profiles.
+         */
+
+        const storedLikes = JSON.parse(
+          localStorage.getItem(
+            "liked_entrepreneurs"
+          ) || "[]"
+        );
+
+        setLiked(
+          storedLikes.includes(
+            String(person.id)
+          )
+        );
+      } catch (error) {
+        console.error(
+          "Failed to check like status:",
+          error
+        );
+      }
+    };
+
+    checkLikeStatus();
+  }, [person?.id]);
+
+  // =========================================================
+  // SAVE LOCAL LIKE STATUS
+  // =========================================================
+
+  const saveLikeStatus = (isLiked) => {
+    try {
+      const storedLikes = JSON.parse(
+        localStorage.getItem(
+          "liked_entrepreneurs"
+        ) || "[]"
+      );
+
+      const entrepreneurId = String(person.id);
+
+      let updatedLikes;
+
+      if (isLiked) {
+        updatedLikes = [
+          ...new Set([
+            ...storedLikes,
+            entrepreneurId,
+          ]),
+        ];
+      } else {
+        updatedLikes = storedLikes.filter(
+          (id) => id !== entrepreneurId
+        );
+      }
+
+      localStorage.setItem(
+        "liked_entrepreneurs",
+        JSON.stringify(updatedLikes)
+      );
+    } catch (error) {
+      console.error(
+        "Failed to save like status:",
+        error
+      );
+    }
+  };
+
+  // =========================================================
+  // LIKE / UNLIKE
+  // =========================================================
+
+  const handleLike = async (event) => {
+    /*
+     * Prevent the card's onClick from opening
+     * the entrepreneur modal.
+     */
+    event.stopPropagation();
+
+    if (!person?.id || liking) return;
+
+    try {
+      setLiking(true);
+
+      const visitorId = getVisitorId();
+
+      // =====================================================
+      // UNLIKE
+      // =====================================================
+
+      if (liked) {
+        const response = await api.delete(
+          `/entrepreneurs/${person.id}/like/`,
+          {
+            params: {
+              visitor_id: visitorId,
+            },
+          }
+        );
+
+        setLiked(false);
+
+        setLikesCount(
+          Number(
+            response.data?.likes_count ??
+              Math.max(likesCount - 1, 0)
+          )
+        );
+
+        saveLikeStatus(false);
+
+        return;
+      }
+
+      // =====================================================
+      // LIKE
+      // =====================================================
+
+      const response = await api.post(
+        `/entrepreneurs/${person.id}/like/`,
+        {
+          visitor_id: visitorId,
+        }
+      );
+
+      setLiked(true);
+
+      setLikesCount(
+        Number(
+          response.data?.likes_count ??
+            likesCount + 1
+        )
+      );
+
+      saveLikeStatus(true);
+
+    } catch (error) {
+      console.error(
+        "Failed to update like:",
+        error
+      );
+    } finally {
+      setLiking(false);
+    }
+  };
 
   // =========================================================
   // SOCIAL LINK HELPERS
@@ -67,7 +262,7 @@ export default function EntrepreneurCard({ person, onClick }) {
   ].filter((social) => social.url);
 
   // =========================================================
-  // IMAGE ERROR FALLBACK
+  // IMAGE FALLBACK
   // =========================================================
 
   const handleImageError = (event) => {
@@ -84,19 +279,9 @@ export default function EntrepreneurCard({ person, onClick }) {
     }
   };
 
-  // =========================================================
-  // OPEN PROFILE
-  // =========================================================
-
-  const handleProfileClick = () => {
-    if (typeof onClick === "function") {
-      onClick(person);
-    }
-  };
-
   return (
     <article
-      onClick={handleProfileClick}
+      onClick={() => onClick?.(person)}
       className="
         group
         bg-white
@@ -116,6 +301,7 @@ export default function EntrepreneurCard({ person, onClick }) {
         flex-col
       "
     >
+
       {/* =====================================================
           PROFILE IMAGE
       ====================================================== */}
@@ -123,43 +309,45 @@ export default function EntrepreneurCard({ person, onClick }) {
       <div
         className="
           relative
-          w-full
           h-64
-          sm:h-72
           bg-slate-100
           overflow-hidden
         "
       >
-        {profileImage ? (
-          <>
-            {/* ===============================================
-                BACKGROUND IMAGE
-            ================================================ */}
 
-            <img
-              src={profileImage}
-              alt=""
-              aria-hidden="true"
-              className="
-                absolute
-                inset-0
-                w-full
-                h-full
-                object-cover
-                scale-110
-                blur-xl
-                opacity-20
-              "
-            />
+        {/* BLURRED BACKGROUND */}
 
-            {/* ===============================================
-                MAIN PROFILE IMAGE
+        {profileImage && (
+          <img
+            src={profileImage}
+            alt=""
+            aria-hidden="true"
+            className="
+              absolute
+              inset-0
+              w-full
+              h-full
+              object-cover
+              scale-110
+              blur-xl
+              opacity-25
+            "
+          />
+        )}
 
-                object-cover fills the entire card.
+        {/* MAIN IMAGE */}
 
-                object-top keeps the head/top portion visible.
-                Any necessary cropping happens toward the bottom.
-            ================================================ */}
+        <div
+          className="
+            absolute
+            inset-0
+            flex
+            items-center
+            justify-center
+          "
+        >
+
+          {profileImage ? (
 
             <img
               src={profileImage}
@@ -170,28 +358,23 @@ export default function EntrepreneurCard({ person, onClick }) {
               onError={handleImageError}
               className="
                 relative
-                z-[1]
                 w-full
                 h-full
                 object-cover
                 object-top
                 transition-transform
                 duration-500
-                group-hover:scale-[1.03]
+                group-hover:scale-[1.02]
               "
             />
 
-            {/* ===============================================
-                IMAGE ERROR FALLBACK
-            ================================================ */}
+          ) : (
 
             <div
               className="
-                image-fallback
-                hidden
                 absolute
                 inset-0
-                z-[2]
+                flex
                 items-center
                 justify-center
                 bg-gradient-to-br
@@ -200,6 +383,7 @@ export default function EntrepreneurCard({ person, onClick }) {
                 text-slate-500
               "
             >
+
               <div className="text-center">
 
                 <div
@@ -224,75 +408,75 @@ export default function EntrepreneurCard({ person, onClick }) {
                 </p>
 
               </div>
+
             </div>
-          </>
-        ) : (
-          /* ===============================================
-             NO IMAGE
-          ================================================ */
 
-          <div
-            className="
-              absolute
-              inset-0
-              flex
-              items-center
-              justify-center
-              bg-gradient-to-br
-              from-slate-200
-              to-slate-300
-              text-slate-500
-            "
-          >
-            <div className="text-center">
+          )}
 
-              <div
-                className="
-                  w-16
-                  h-16
-                  mx-auto
-                  rounded-full
-                  bg-white
-                  flex
-                  items-center
-                  justify-center
-                  text-2xl
-                  shadow
-                "
-              >
-                👤
+          {/* IMAGE ERROR FALLBACK */}
+
+          {profileImage && (
+            <div
+              className="
+                image-fallback
+                hidden
+                absolute
+                inset-0
+                items-center
+                justify-center
+                bg-gradient-to-br
+                from-slate-200
+                to-slate-300
+                text-slate-500
+              "
+            >
+
+              <div className="text-center">
+
+                <div
+                  className="
+                    w-16
+                    h-16
+                    mx-auto
+                    rounded-full
+                    bg-white
+                    flex
+                    items-center
+                    justify-center
+                    text-2xl
+                    shadow
+                  "
+                >
+                  👤
+                </div>
+
+                <p className="mt-3 text-sm">
+                  No image available
+                </p>
+
               </div>
 
-              <p className="mt-3 text-sm">
-                No image available
-              </p>
-
             </div>
-          </div>
-        )}
+          )}
 
-        {/* =====================================================
-            BOTTOM IMAGE GRADIENT
-        ====================================================== */}
+        </div>
+
+        {/* BOTTOM GRADIENT */}
 
         <div
           className="
             absolute
             inset-x-0
             bottom-0
-            h-28
+            h-24
             bg-gradient-to-t
             from-black/40
-            via-black/10
             to-transparent
             pointer-events-none
-            z-[3]
           "
         />
 
-        {/* =====================================================
-            FEATURED BADGE
-        ====================================================== */}
+        {/* FEATURED BADGE */}
 
         {person?.featured && (
           <div
@@ -315,9 +499,75 @@ export default function EntrepreneurCard({ person, onClick }) {
           </div>
         )}
 
-        {/* =====================================================
-            VIEW PROFILE
-        ====================================================== */}
+        {/* =================================================
+            LIKE BUTTON
+        ================================================== */}
+
+        <button
+          type="button"
+          onClick={handleLike}
+          disabled={liking}
+          aria-label={
+            liked
+              ? "Unlike entrepreneur"
+              : "Like entrepreneur"
+          }
+          className={`
+            absolute
+            top-4
+            right-4
+            z-20
+            flex
+            items-center
+            gap-2
+            px-3
+            py-2
+            rounded-full
+            bg-white/95
+            backdrop-blur-sm
+            shadow-lg
+            transition-all
+            duration-200
+            hover:scale-105
+            ${
+              liked
+                ? "text-red-500"
+                : "text-slate-500"
+            }
+            ${
+              liking
+                ? "opacity-70 cursor-wait"
+                : ""
+            }
+          `}
+        >
+
+          <FaHeart
+            className={`
+              text-lg
+              transition-transform
+              duration-200
+              ${
+                liked
+                  ? "scale-110"
+                  : ""
+              }
+            `}
+          />
+
+          <span
+            className="
+              text-sm
+              font-bold
+              min-w-[12px]
+            "
+          >
+            {likesCount}
+          </span>
+
+        </button>
+
+        {/* VIEW PROFILE */}
 
         <div
           className="
@@ -344,6 +594,7 @@ export default function EntrepreneurCard({ person, onClick }) {
         >
           View Profile
         </div>
+
       </div>
 
       {/* =====================================================
@@ -358,9 +609,8 @@ export default function EntrepreneurCard({ person, onClick }) {
           flex-1
         "
       >
-        {/* =================================================
-            NAME
-        ================================================== */}
+
+        {/* NAME */}
 
         <h3
           className="
@@ -376,9 +626,7 @@ export default function EntrepreneurCard({ person, onClick }) {
             "Unnamed Entrepreneur"}
         </h3>
 
-        {/* =================================================
-            TITLE
-        ================================================== */}
+        {/* TITLE */}
 
         {person?.title && (
           <p
@@ -393,9 +641,7 @@ export default function EntrepreneurCard({ person, onClick }) {
           </p>
         )}
 
-        {/* =================================================
-            LOCATION
-        ================================================== */}
+        {/* LOCATION */}
 
         {person?.location && (
           <div
@@ -408,17 +654,17 @@ export default function EntrepreneurCard({ person, onClick }) {
               text-slate-500
             "
           >
+
             <span>📍</span>
 
             <span>
               {person.location}
             </span>
+
           </div>
         )}
 
-        {/* =================================================
-            DESCRIPTION
-        ================================================== */}
+        {/* DESCRIPTION */}
 
         {person?.description && (
           <p
@@ -434,11 +680,12 @@ export default function EntrepreneurCard({ person, onClick }) {
           </p>
         )}
 
-        {/* =================================================
+        {/* ===================================================
             GALLERY PREVIEW
-        ================================================== */}
+        ==================================================== */}
 
         {gallery.length > 0 && (
+
           <div className="mt-5">
 
             <div
@@ -449,6 +696,7 @@ export default function EntrepreneurCard({ person, onClick }) {
                 mb-2
               "
             >
+
               <span
                 className="
                   text-xs
@@ -472,6 +720,7 @@ export default function EntrepreneurCard({ person, onClick }) {
                   ? "image"
                   : "images"}
               </span>
+
             </div>
 
             <div
@@ -481,9 +730,11 @@ export default function EntrepreneurCard({ person, onClick }) {
                 gap-2
               "
             >
+
               {gallery
                 .slice(0, 3)
                 .map((image, index) => (
+
                   <div
                     key={`${image}-${index}`}
                     className="
@@ -494,11 +745,15 @@ export default function EntrepreneurCard({ person, onClick }) {
                       shadow-sm
                     "
                   >
+
                     <img
                       src={image}
-                      alt={`${person?.name || "Entrepreneur"} work ${
+                      alt={`
+                        ${person?.name ||
+                        "Entrepreneur"} work ${
                         index + 1
-                      }`}
+                      }
+                      `}
                       className="
                         w-full
                         h-full
@@ -508,17 +763,23 @@ export default function EntrepreneurCard({ person, onClick }) {
                         duration-300
                       "
                     />
+
                   </div>
+
                 ))}
+
             </div>
+
           </div>
+
         )}
 
-        {/* =================================================
+        {/* ===================================================
             SOCIAL LINKS
-        ================================================== */}
+        ==================================================== */}
 
         {socialLinks.length > 0 && (
+
           <div
             className="
               mt-5
@@ -527,6 +788,7 @@ export default function EntrepreneurCard({ person, onClick }) {
               border-slate-100
             "
           >
+
             <div
               className="
                 flex
@@ -534,7 +796,9 @@ export default function EntrepreneurCard({ person, onClick }) {
                 gap-2
               "
             >
+
               {socialLinks.map((social) => (
+
                 <a
                   key={social.name}
                   href={social.url}
@@ -563,9 +827,13 @@ export default function EntrepreneurCard({ person, onClick }) {
                 >
                   {social.icon}
                 </a>
+
               ))}
+
             </div>
+
           </div>
+
         )}
 
         {/* =================================================
@@ -578,11 +846,12 @@ export default function EntrepreneurCard({ person, onClick }) {
             pt-5
           "
         >
+
           <button
             type="button"
             onClick={(event) => {
               event.stopPropagation();
-              handleProfileClick();
+              onClick?.(person);
             }}
             className="
               w-full
@@ -601,8 +870,11 @@ export default function EntrepreneurCard({ person, onClick }) {
           >
             Explore Entrepreneur
           </button>
+
         </div>
+
       </div>
+
     </article>
   );
 }
