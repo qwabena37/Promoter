@@ -110,13 +110,13 @@ export default function EntrepreneurCard({ person, onClick }) {
               alt={person?.name || "Entrepreneur"}
               onError={handleImageError}
               className="
-                w-full
-                h-full
-                object-cover
-                transition-transform
-                duration-500
-                group-hover:scale-105
-              "
+  w-full
+  h-full
+  object-contain
+  bg-slate-100
+  transition-transform
+  duration-500
+"
             />
 
             {/* Fallback */}

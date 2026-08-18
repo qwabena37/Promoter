@@ -164,7 +164,8 @@ export default function EntrepreneurModal({
                 w-full
                 h-[300px]
                 sm:h-[380px]
-                object-cover
+                object-contain
+                bg-slate-100
               "
             />
 
