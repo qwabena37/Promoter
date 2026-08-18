@@ -530,21 +530,10 @@ export default function EntrepreneurCard({
               mb-1
             "
           >
-            Hello there 👋
+            Hello there, meet 👋
           </p>
 
-          <h3
-            className="
-              text-2xl
-              font-bold
-              leading-tight
-              drop-shadow-lg
-            "
-          >
-            Meet{" "}
-            {person?.name ||
-              "Our Entrepreneur"}
-          </h3>
+
 
           <p
             className="
