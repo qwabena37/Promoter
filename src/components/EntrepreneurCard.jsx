@@ -4,6 +4,10 @@ import React from "react";
 export default function EntrepreneurCard({ person, onClick }) {
   const socials = person?.socials || {};
 
+  // =========================================================
+  // PROFILE IMAGE
+  // =========================================================
+
   // Prefer the serializer's "image" field.
   // Fall back to profile_image for compatibility.
   const profileImage =
@@ -11,13 +15,17 @@ export default function EntrepreneurCard({ person, onClick }) {
     person?.profile_image ||
     null;
 
+  // =========================================================
+  // GALLERY
+  // =========================================================
+
   const gallery = Array.isArray(person?.gallery)
     ? person.gallery.filter(Boolean)
     : [];
 
-  // ---------------------------------------------------------
+  // =========================================================
   // SOCIAL LINK HELPERS
-  // ---------------------------------------------------------
+  // =========================================================
 
   const whatsappNumber = socials.whatsapp
     ? socials.whatsapp.replace(/\D/g, "")
@@ -60,9 +68,9 @@ export default function EntrepreneurCard({ person, onClick }) {
     },
   ].filter((social) => social.url);
 
-  // ---------------------------------------------------------
+  // =========================================================
   // IMAGE FALLBACK
-  // ---------------------------------------------------------
+  // =========================================================
 
   const handleImageError = (event) => {
     event.currentTarget.style.display = "none";
@@ -83,12 +91,13 @@ export default function EntrepreneurCard({ person, onClick }) {
       className="
         group
         bg-white
-        rounded-2xl
+        rounded-3xl
         overflow-hidden
         shadow-md
-        hover:shadow-xl
+        hover:shadow-2xl
         border
         border-slate-100
+        hover:border-slate-200
         transition-all
         duration-300
         hover:-translate-y-1
@@ -98,70 +107,82 @@ export default function EntrepreneurCard({ person, onClick }) {
         flex-col
       "
     >
+
       {/* =====================================================
           PROFILE IMAGE
       ====================================================== */}
 
-      <div className="relative h-64 bg-slate-100 overflow-hidden">
-        {profileImage ? (
-          <>
+      <div className="
+        relative
+        h-64
+        bg-slate-100
+        overflow-hidden
+      ">
+
+        {/* =================================================
+            BLURRED BACKGROUND
+        ================================================== */}
+
+        {profileImage && (
+          <img
+            src={profileImage}
+            alt=""
+            aria-hidden="true"
+            className="
+              absolute
+              inset-0
+              w-full
+              h-full
+              object-cover
+              scale-110
+              blur-xl
+              opacity-25
+            "
+          />
+        )}
+
+        {/* =================================================
+            MAIN IMAGE CONTAINER
+        ================================================== */}
+
+        <div className="
+          absolute
+          inset-0
+          flex
+          items-center
+          justify-center
+          p-2
+        ">
+
+          {profileImage ? (
+
             <img
               src={profileImage}
-              alt={person?.name || "Entrepreneur"}
+              alt={
+                person?.name ||
+                "Entrepreneur"
+              }
               onError={handleImageError}
               className="
-  w-full
-  h-full
-  object-contain
-  bg-slate-100
-  transition-transform
-  duration-500
-"
+                relative
+                w-full
+                h-full
+                object-contain
+                rounded-2xl
+                drop-shadow-lg
+                transition-transform
+                duration-500
+                group-hover:scale-[1.02]
+              "
             />
 
-            {/* Fallback */}
-            <div
-              className="
-                image-fallback
-                hidden
-                absolute
-                inset-0
-                flex
-                items-center
-                justify-center
-                bg-gradient-to-br
-                from-slate-200
-                to-slate-300
-                text-slate-500
-              "
-            >
-              <div className="text-center">
-                <div
-                  className="
-                    w-16
-                    h-16
-                    mx-auto
-                    rounded-full
-                    bg-white
-                    flex
-                    items-center
-                    justify-center
-                    text-2xl
-                    shadow
-                  "
-                >
-                  👤
-                </div>
+          ) : (
 
-                <p className="mt-3 text-sm">
-                  No image available
-                </p>
-              </div>
-            </div>
-          </>
-        ) : (
-          <div
-            className="
+            /* =================================================
+               NO IMAGE FALLBACK
+            ================================================== */
+
+            <div className="
               absolute
               inset-0
               flex
@@ -171,11 +192,11 @@ export default function EntrepreneurCard({ person, onClick }) {
               from-slate-200
               to-slate-300
               text-slate-500
-            "
-          >
-            <div className="text-center">
-              <div
-                className="
+            ">
+
+              <div className="text-center">
+
+                <div className="
                   w-16
                   h-16
                   mx-auto
@@ -186,192 +207,283 @@ export default function EntrepreneurCard({ person, onClick }) {
                   justify-center
                   text-2xl
                   shadow
-                "
-              >
-                👤
+                ">
+                  👤
+                </div>
+
+                <p className="mt-3 text-sm">
+                  No image available
+                </p>
+
               </div>
 
-              <p className="mt-3 text-sm">
-                No image available
-              </p>
             </div>
-          </div>
-        )}
 
-        {/* FEATURED BADGE */}
+          )}
+
+          {/* =================================================
+              IMAGE ERROR FALLBACK
+          ================================================== */}
+
+          {profileImage && (
+            <div
+              className="
+                image-fallback
+                hidden
+                absolute
+                inset-2
+                items-center
+                justify-center
+                rounded-2xl
+                bg-gradient-to-br
+                from-slate-200
+                to-slate-300
+                text-slate-500
+              "
+            >
+
+              <div className="text-center">
+
+                <div className="
+                  w-16
+                  h-16
+                  mx-auto
+                  rounded-full
+                  bg-white
+                  flex
+                  items-center
+                  justify-center
+                  text-2xl
+                  shadow
+                ">
+                  👤
+                </div>
+
+                <p className="mt-3 text-sm">
+                  No image available
+                </p>
+
+              </div>
+
+            </div>
+          )}
+
+        </div>
+
+        {/* =================================================
+            BOTTOM IMAGE GRADIENT
+        ================================================== */}
+
+        <div className="
+          absolute
+          inset-x-0
+          bottom-0
+          h-24
+          bg-gradient-to-t
+          from-black/30
+          to-transparent
+          pointer-events-none
+        " />
+
+        {/* =================================================
+            FEATURED BADGE
+        ================================================== */}
 
         {person?.featured && (
-          <div
-            className="
-              absolute
-              top-4
-              left-4
-              bg-amber-400
-              text-slate-900
-              px-3
-              py-1.5
-              rounded-full
-              text-xs
-              font-bold
-              shadow
-            "
-          >
-            Featured
-          </div>
-        )}
-
-        {/* VIEW PROFILE */}
-
-        <div
-          className="
+          <div className="
             absolute
-            bottom-4
-            right-4
-            bg-white/95
+            top-4
+            left-4
+            bg-amber-400
             text-slate-900
             px-3
             py-1.5
             rounded-full
             text-xs
-            font-semibold
-            opacity-0
-            translate-y-2
-            group-hover:opacity-100
-            group-hover:translate-y-0
-            transition-all
-            duration-300
-            shadow
-          "
-        >
+            font-bold
+            shadow-lg
+            z-10
+          ">
+            Featured
+          </div>
+        )}
+
+        {/* =================================================
+            VIEW PROFILE
+        ================================================== */}
+
+        <div className="
+          absolute
+          bottom-4
+          right-4
+          bg-white/95
+          backdrop-blur-sm
+          text-slate-900
+          px-4
+          py-2
+          rounded-full
+          text-xs
+          font-semibold
+          opacity-0
+          translate-y-2
+          group-hover:opacity-100
+          group-hover:translate-y-0
+          transition-all
+          duration-300
+          shadow-lg
+          z-10
+        ">
           View Profile
         </div>
+
       </div>
 
       {/* =====================================================
           CONTENT
       ====================================================== */}
 
-      <div className="p-6 flex flex-col flex-1">
+      <div className="
+        p-6
+        flex
+        flex-col
+        flex-1
+      ">
 
-        {/* NAME */}
+        {/* =================================================
+            NAME
+        ================================================== */}
 
-        <h3
-          className="
-            text-xl
-            font-bold
-            text-slate-900
-            leading-tight
-            group-hover:text-blue-700
-            transition
-          "
-        >
-          {person?.name || "Unnamed Entrepreneur"}
+        <h3 className="
+          text-xl
+          font-bold
+          text-slate-900
+          leading-tight
+          group-hover:text-blue-700
+          transition
+        ">
+          {person?.name ||
+            "Unnamed Entrepreneur"}
         </h3>
 
-        {/* TITLE */}
+        {/* =================================================
+            TITLE
+        ================================================== */}
 
         {person?.title && (
-          <p
-            className="
-              mt-2
-              text-amber-500
-              font-semibold
-              text-sm
-            "
-          >
+          <p className="
+            mt-2
+            text-amber-500
+            font-semibold
+            text-sm
+          ">
             {person.title}
           </p>
         )}
 
-        {/* LOCATION */}
+        {/* =================================================
+            LOCATION
+        ================================================== */}
 
         {person?.location && (
-          <div
-            className="
-              flex
-              items-center
-              gap-2
-              mt-3
-              text-sm
-              text-slate-500
-            "
-          >
+          <div className="
+            flex
+            items-center
+            gap-2
+            mt-3
+            text-sm
+            text-slate-500
+          ">
+
             <span>📍</span>
 
             <span>
               {person.location}
             </span>
+
           </div>
         )}
 
-        {/* DESCRIPTION */}
+        {/* =================================================
+            DESCRIPTION
+        ================================================== */}
 
         {person?.description && (
-          <p
-            className="
-              mt-4
-              text-slate-600
-              text-sm
-              leading-relaxed
-              line-clamp-4
-            "
-          >
+          <p className="
+            mt-4
+            text-slate-600
+            text-sm
+            leading-relaxed
+            line-clamp-4
+          ">
             {person.description}
           </p>
         )}
 
-        {/* ===================================================
+        {/* =================================================
             GALLERY PREVIEW
-        ==================================================== */}
+        ================================================== */}
 
         {gallery.length > 0 && (
           <div className="mt-5">
 
-            <div className="flex items-center justify-between mb-2">
-              <span
-                className="
-                  text-xs
-                  font-semibold
-                  uppercase
-                  tracking-wide
-                  text-slate-500
-                "
-              >
+            <div className="
+              flex
+              items-center
+              justify-between
+              mb-2
+            ">
+
+              <span className="
+                text-xs
+                font-semibold
+                uppercase
+                tracking-wide
+                text-slate-500
+              ">
                 Work Gallery
               </span>
 
-              <span
-                className="
-                  text-xs
-                  text-slate-400
-                "
-              >
+              <span className="
+                text-xs
+                text-slate-400
+              ">
                 {gallery.length}{" "}
                 {gallery.length === 1
                   ? "image"
                   : "images"}
               </span>
+
             </div>
 
-            <div className="grid grid-cols-3 gap-2">
+            <div className="
+              grid
+              grid-cols-3
+              gap-2
+            ">
 
               {gallery
                 .slice(0, 3)
                 .map((image, index) => (
+
                   <div
                     key={`${image}-${index}`}
                     className="
                       h-20
-                      rounded-lg
+                      rounded-xl
                       overflow-hidden
                       bg-slate-100
+                      shadow-sm
                     "
                   >
+
                     <img
                       src={image}
-                      alt={`${person?.name || "Entrepreneur"} work ${
+                      alt={`
+                        ${person?.name ||
+                        "Entrepreneur"} work ${
                         index + 1
-                      }`}
+                      }
+                      `}
                       className="
                         w-full
                         h-full
@@ -381,23 +493,36 @@ export default function EntrepreneurCard({ person, onClick }) {
                         duration-300
                       "
                     />
+
                   </div>
+
                 ))}
 
             </div>
+
           </div>
         )}
 
-        {/* ===================================================
+        {/* =================================================
             SOCIAL LINKS
-        ==================================================== */}
+        ================================================== */}
 
         {socialLinks.length > 0 && (
-          <div className="mt-5 pt-4 border-t border-slate-100">
+          <div className="
+            mt-5
+            pt-4
+            border-t
+            border-slate-100
+          ">
 
-            <div className="flex flex-wrap gap-2">
+            <div className="
+              flex
+              flex-wrap
+              gap-2
+            ">
 
               {socialLinks.map((social) => (
+
                 <a
                   key={social.name}
                   href={social.url}
@@ -426,21 +551,29 @@ export default function EntrepreneurCard({ person, onClick }) {
                 >
                   {social.icon}
                 </a>
+
               ))}
 
             </div>
+
           </div>
         )}
 
-        {/* ===================================================
+        {/* =================================================
             BOTTOM ACTION
-        ==================================================== */}
+        ================================================== */}
 
-        <div className="mt-auto pt-5">
+        <div className="
+          mt-auto
+          pt-5
+        ">
 
           <button
             type="button"
-            onClick={onClick}
+            onClick={(event) => {
+              event.stopPropagation();
+              onClick?.(person);
+            }}
             className="
               w-full
               bg-slate-900
@@ -452,6 +585,8 @@ export default function EntrepreneurCard({ person, onClick }) {
               font-semibold
               transition-all
               duration-300
+              shadow-sm
+              hover:shadow-lg
             "
           >
             Explore Entrepreneur
@@ -460,6 +595,8 @@ export default function EntrepreneurCard({ person, onClick }) {
         </div>
 
       </div>
+
     </article>
   );
 }
+
