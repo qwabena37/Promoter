@@ -16,11 +16,16 @@ export default function EntrepreneurCard({ person, onClick }) {
     null;
 
   // =========================================================
-  // GALLERY
+  // WORK GALLERY
+  // Supports both:
+  // person.works
+  // person.gallery
   // =========================================================
 
-  const gallery = Array.isArray(person?.gallery)
-    ? person.gallery.filter(Boolean)
+  const gallery = Array.isArray(person?.works)
+    ? person.works
+    : Array.isArray(person?.gallery)
+    ? person.gallery
     : [];
 
   // =========================================================
@@ -36,7 +41,17 @@ export default function EntrepreneurCard({ person, onClick }) {
   const [liking, setLiking] = useState(false);
 
   // =========================================================
-  // CREATE / GET VISITOR ID
+  // UPDATE LIKE COUNT WHEN PERSON CHANGES
+  // =========================================================
+
+  useEffect(() => {
+    setLikesCount(
+      Number(person?.likes_count || 0)
+    );
+  }, [person?.id, person?.likes_count]);
+
+  // =========================================================
+  // VISITOR ID
   // =========================================================
 
   const getVisitorId = () => {
@@ -57,44 +72,30 @@ export default function EntrepreneurCard({ person, onClick }) {
   };
 
   // =========================================================
-  // CHECK WHETHER THIS VISITOR ALREADY LIKED
+  // CHECK LOCAL LIKE STATUS
   // =========================================================
 
   useEffect(() => {
-    const checkLikeStatus = async () => {
-      if (!person?.id) return;
+    if (!person?.id) return;
 
-      try {
-        const visitorId = getVisitorId();
+    try {
+      const storedLikes = JSON.parse(
+        localStorage.getItem(
+          "liked_entrepreneurs"
+        ) || "[]"
+      );
 
-        /*
-         * If your backend has a status endpoint,
-         * this can be replaced with that endpoint.
-         *
-         * For now we use localStorage to remember
-         * the visitor's liked profiles.
-         */
-
-        const storedLikes = JSON.parse(
-          localStorage.getItem(
-            "liked_entrepreneurs"
-          ) || "[]"
-        );
-
-        setLiked(
-          storedLikes.includes(
-            String(person.id)
-          )
-        );
-      } catch (error) {
-        console.error(
-          "Failed to check like status:",
-          error
-        );
-      }
-    };
-
-    checkLikeStatus();
+      setLiked(
+        storedLikes.includes(
+          String(person.id)
+        )
+      );
+    } catch (error) {
+      console.error(
+        "Failed to check like status:",
+        error
+      );
+    }
   }, [person?.id]);
 
   // =========================================================
@@ -109,7 +110,9 @@ export default function EntrepreneurCard({ person, onClick }) {
         ) || "[]"
       );
 
-      const entrepreneurId = String(person.id);
+      const entrepreneurId = String(
+        person.id
+      );
 
       let updatedLikes;
 
@@ -143,10 +146,6 @@ export default function EntrepreneurCard({ person, onClick }) {
   // =========================================================
 
   const handleLike = async (event) => {
-    /*
-     * Prevent the card's onClick from opening
-     * the entrepreneur modal.
-     */
     event.stopPropagation();
 
     if (!person?.id || liking) return;
@@ -175,7 +174,10 @@ export default function EntrepreneurCard({ person, onClick }) {
         setLikesCount(
           Number(
             response.data?.likes_count ??
-              Math.max(likesCount - 1, 0)
+              Math.max(
+                likesCount - 1,
+                0
+              )
           )
         );
 
@@ -217,7 +219,7 @@ export default function EntrepreneurCard({ person, onClick }) {
   };
 
   // =========================================================
-  // SOCIAL LINK HELPERS
+  // SOCIAL LINKS
   // =========================================================
 
   const whatsappNumber = socials.whatsapp
@@ -231,32 +233,47 @@ export default function EntrepreneurCard({ person, onClick }) {
   const socialLinks = [
     {
       name: "WhatsApp",
-      url: whatsappUrl,
+      url:
+        socials.whatsapp ||
+        person?.whatsapp
+          ? whatsappUrl ||
+            person?.whatsapp
+          : null,
       icon: "💬",
     },
     {
       name: "Instagram",
-      url: socials.instagram,
+      url:
+        socials.instagram ||
+        person?.instagram,
       icon: "📸",
     },
     {
       name: "Facebook",
-      url: socials.facebook,
+      url:
+        socials.facebook ||
+        person?.facebook,
       icon: "f",
     },
     {
       name: "TikTok",
-      url: socials.tiktok,
+      url:
+        socials.tiktok ||
+        person?.tiktok,
       icon: "♪",
     },
     {
       name: "YouTube",
-      url: socials.youtube,
+      url:
+        socials.youtube ||
+        person?.youtube,
       icon: "▶",
     },
     {
       name: "Website",
-      url: socials.website,
+      url:
+        socials.website ||
+        person?.website,
       icon: "🌐",
     },
   ].filter((social) => social.url);
@@ -277,6 +294,32 @@ export default function EntrepreneurCard({ person, onClick }) {
       fallback.classList.remove("hidden");
       fallback.classList.add("flex");
     }
+  };
+
+  // =========================================================
+  // WORK IMAGE URL
+  // =========================================================
+
+  const getWorkImage = (work) => {
+    if (!work) return null;
+
+    // If backend returns:
+    // "https://example.com/image.jpg"
+    if (typeof work === "string") {
+      return work;
+    }
+
+    // If backend returns:
+    // { image: "https://example.com/image.jpg" }
+    if (typeof work === "object") {
+      return (
+        work.image ||
+        work.url ||
+        null
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -335,7 +378,7 @@ export default function EntrepreneurCard({ person, onClick }) {
           />
         )}
 
-        {/* MAIN IMAGE */}
+        {/* MAIN PROFILE IMAGE */}
 
         <div
           className="
@@ -413,7 +456,7 @@ export default function EntrepreneurCard({ person, onClick }) {
 
           )}
 
-          {/* IMAGE ERROR FALLBACK */}
+          {/* IMAGE FALLBACK */}
 
           {profileImage && (
             <div
@@ -476,7 +519,7 @@ export default function EntrepreneurCard({ person, onClick }) {
           "
         />
 
-        {/* FEATURED BADGE */}
+        {/* FEATURED */}
 
         {person?.featured && (
           <div
@@ -654,13 +697,11 @@ export default function EntrepreneurCard({ person, onClick }) {
               text-slate-500
             "
           >
-
             <span>📍</span>
 
             <span>
               {person.location}
             </span>
-
           </div>
         )}
 
@@ -680,9 +721,9 @@ export default function EntrepreneurCard({ person, onClick }) {
           </p>
         )}
 
-        {/* ===================================================
-            GALLERY PREVIEW
-        ==================================================== */}
+        {/* =================================================
+            WORK GALLERY
+        ================================================== */}
 
         {gallery.length > 0 && (
 
@@ -733,40 +774,57 @@ export default function EntrepreneurCard({ person, onClick }) {
 
               {gallery
                 .slice(0, 3)
-                .map((image, index) => (
+                .map((work, index) => {
 
-                  <div
-                    key={`${image}-${index}`}
-                    className="
-                      h-20
-                      rounded-xl
-                      overflow-hidden
-                      bg-slate-100
-                      shadow-sm
-                    "
-                  >
+                  const image =
+                    getWorkImage(work);
 
-                    <img
-                      src={image}
-                      alt={`
-                        ${person?.name ||
-                        "Entrepreneur"} work ${
-                        index + 1
+                  if (!image) {
+                    return null;
+                  }
+
+                  return (
+
+                    <div
+                      key={
+                        work?.id ||
+                        `${image}-${index}`
                       }
-                      `}
                       className="
-                        w-full
-                        h-full
-                        object-cover
-                        hover:scale-105
-                        transition-transform
-                        duration-300
+                        h-20
+                        rounded-xl
+                        overflow-hidden
+                        bg-slate-100
+                        shadow-sm
                       "
-                    />
+                    >
 
-                  </div>
+                      <img
+                        src={image}
+                        alt={`
+                          ${person?.name ||
+                          "Entrepreneur"} work ${
+                          index + 1
+                        }
+                        `}
+                        onError={(event) => {
+                          event.currentTarget.style.display =
+                            "none";
+                        }}
+                        className="
+                          w-full
+                          h-full
+                          object-cover
+                          hover:scale-105
+                          transition-transform
+                          duration-300
+                        "
+                      />
 
-                ))}
+                    </div>
+
+                  );
+                })}
 
             </div>
 
@@ -774,9 +832,9 @@ export default function EntrepreneurCard({ person, onClick }) {
 
         )}
 
-        {/* ===================================================
+        {/* =================================================
             SOCIAL LINKS
-        ==================================================== */}
+        ================================================== */}
 
         {socialLinks.length > 0 && (
 
@@ -878,4 +936,3 @@ export default function EntrepreneurCard({ person, onClick }) {
     </article>
   );
 }
-
