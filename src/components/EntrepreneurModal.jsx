@@ -1,4 +1,6 @@
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
+import api from "../services/api";
 
 import {
   FaFacebook,
@@ -17,26 +19,255 @@ export default function EntrepreneurModal({
   onClose,
 }) {
   const [lightbox, setLightbox] = useState(null);
+
+  // =========================================================
+  // LIKE STATES
+  // =========================================================
+
   const [favorite, setFavorite] = useState(false);
-  const [favoriteCount, setFavoriteCount] = useState(0);
 
-  if (!person) return null;
+  const [favoriteCount, setFavoriteCount] = useState(
+    person?.likes_count || 0
+  );
+
+  const [liking, setLiking] = useState(false);
 
   // =========================================================
-  // FAVORITE
+  // GET / CREATE VISITOR ID
   // =========================================================
 
-  const handleFavoriteClick = () => {
-    if (!favorite) {
-      setFavoriteCount((count) => count + 1);
-    } else {
-      setFavoriteCount((count) =>
-        count > 0 ? count - 1 : 0
+  const getVisitorId = () => {
+    let visitorId = localStorage.getItem(
+      "entrepreneur_visitor_id"
+    );
+
+    if (!visitorId) {
+      visitorId = crypto.randomUUID();
+
+      localStorage.setItem(
+        "entrepreneur_visitor_id",
+        visitorId
       );
     }
 
-    setFavorite(!favorite);
+    return visitorId;
   };
+
+  // =========================================================
+  // LOAD LIKE INFORMATION
+  // =========================================================
+
+  useEffect(() => {
+    if (!person?.id) return;
+
+    const loadLikeInformation = async () => {
+      try {
+        const visitorId = getVisitorId();
+
+        /*
+         * Load the latest entrepreneur information.
+         * This ensures that the displayed count is coming
+         * from the backend/database.
+         */
+
+        const response = await api.get(
+          `/entrepreneurs/${person.id}/`
+        );
+
+        const likes =
+          response.data?.likes_count ??
+          person.likes_count ??
+          0;
+
+        setFavoriteCount(likes);
+
+        /*
+         * If your backend serializer eventually returns
+         * liked_by_me, we will use it.
+         */
+
+        if (
+          typeof response.data?.liked_by_me ===
+          "boolean"
+        ) {
+          setFavorite(
+            response.data.liked_by_me
+          );
+        } else {
+          /*
+           * Temporary browser-side fallback.
+           *
+           * This allows the UI to remember that this browser
+           * has already liked the entrepreneur even if the
+           * GET endpoint does not yet return liked_by_me.
+           */
+
+          const likedProfiles =
+            JSON.parse(
+              localStorage.getItem(
+                "liked_entrepreneurs"
+              ) || "[]"
+            );
+
+          setFavorite(
+            likedProfiles.includes(
+              String(person.id)
+            )
+          );
+        }
+
+        // Keep visitorId initialized
+        if (!visitorId) {
+          getVisitorId();
+        }
+
+      } catch (error) {
+        console.error(
+          "Failed to load like information:",
+          error
+        );
+
+        /*
+         * Fall back to the data already received
+         * from the entrepreneurs endpoint.
+         */
+
+        setFavoriteCount(
+          person.likes_count || 0
+        );
+      }
+    };
+
+    loadLikeInformation();
+  }, [person?.id]);
+
+  // =========================================================
+  // LIKE / UNLIKE
+  // =========================================================
+
+  const handleFavoriteClick = async () => {
+    if (!person?.id || liking) return;
+
+    try {
+      setLiking(true);
+
+      const visitorId = getVisitorId();
+
+      // =====================================================
+      // LIKE
+      // =====================================================
+
+      if (!favorite) {
+        const response = await api.post(
+          `/entrepreneurs/${person.id}/like/`,
+          {
+            visitor_id: visitorId,
+          }
+        );
+
+        setFavorite(true);
+
+        setFavoriteCount(
+          response.data?.likes_count ??
+          favoriteCount + 1
+        );
+
+        /*
+         * Remember liked entrepreneur locally.
+         */
+
+        const likedProfiles =
+          JSON.parse(
+            localStorage.getItem(
+              "liked_entrepreneurs"
+            ) || "[]"
+          );
+
+        if (
+          !likedProfiles.includes(
+            String(person.id)
+          )
+        ) {
+          likedProfiles.push(
+            String(person.id)
+          );
+        }
+
+        localStorage.setItem(
+          "liked_entrepreneurs",
+          JSON.stringify(likedProfiles)
+        );
+      }
+
+      // =====================================================
+      // UNLIKE
+      // =====================================================
+
+      else {
+        const response = await api.delete(
+          `/entrepreneurs/${person.id}/like/`,
+          {
+            params: {
+              visitor_id: visitorId,
+            },
+          }
+        );
+
+        setFavorite(false);
+
+        setFavoriteCount(
+          response.data?.likes_count ??
+          Math.max(
+            favoriteCount - 1,
+            0
+          )
+        );
+
+        /*
+         * Remove entrepreneur from local liked list.
+         */
+
+        const likedProfiles =
+          JSON.parse(
+            localStorage.getItem(
+              "liked_entrepreneurs"
+            ) || "[]"
+          );
+
+        const updatedProfiles =
+          likedProfiles.filter(
+            (id) =>
+              id !== String(person.id)
+          );
+
+        localStorage.setItem(
+          "liked_entrepreneurs",
+          JSON.stringify(
+            updatedProfiles
+          )
+        );
+      }
+
+    } catch (error) {
+      console.error(
+        "Failed to update entrepreneur like:",
+        error
+      );
+
+      console.error(
+        "Like API response:",
+        error.response?.data
+      );
+    } finally {
+      setLiking(false);
+    }
+  };
+
+  // =========================================================
+  // CLOSE / RESET
+  // =========================================================
+
+  if (!person) return null;
 
   // =========================================================
   // PROFILE IMAGE
@@ -50,26 +281,6 @@ export default function EntrepreneurModal({
   // =========================================================
   // WORK IMAGES
   // =========================================================
-  /*
-    Django:
-    
-    class WorkImage(models.Model):
-        entrepreneur = models.ForeignKey(
-            Entrepreneur,
-            related_name="works",
-            ...
-        )
-
-    Therefore the serializer should return:
-
-    works: [
-      {
-        id: 1,
-        image: "https://..."
-      },
-      ...
-    ]
-  */
 
   const works = Array.isArray(person.works)
     ? person.works
@@ -79,25 +290,62 @@ export default function EntrepreneurModal({
   // SOCIAL MEDIA
   // =========================================================
 
-  const whatsapp = person.whatsapp || "";
-  const instagram = person.instagram || "";
-  const facebook = person.facebook || "";
-  const tiktok = person.tiktok || "";
-  const youtube = person.youtube || "";
-  const website = person.website || "";
+  const socials = person.socials || {};
+
+  /*
+   * Support both:
+   *
+   * person.socials.instagram
+   *
+   * and older:
+   *
+   * person.instagram
+   */
+
+  const whatsapp =
+    socials.whatsapp ||
+    person.whatsapp ||
+    "";
+
+  const instagram =
+    socials.instagram ||
+    person.instagram ||
+    "";
+
+  const facebook =
+    socials.facebook ||
+    person.facebook ||
+    "";
+
+  const tiktok =
+    socials.tiktok ||
+    person.tiktok ||
+    "";
+
+  const youtube =
+    socials.youtube ||
+    person.youtube ||
+    "";
+
+  const website =
+    socials.website ||
+    person.website ||
+    "";
 
   // =========================================================
   // WHATSAPP URL
   // =========================================================
 
-  const whatsappNumber = whatsapp.replace(
-    /[^0-9]/g,
-    ""
-  );
+  const whatsappNumber =
+    whatsapp.replace(
+      /[^0-9]/g,
+      ""
+    );
 
-  const whatsappUrl = whatsappNumber
-    ? `https://wa.me/${whatsappNumber}`
-    : "";
+  const whatsappUrl =
+    whatsappNumber
+      ? `https://wa.me/${whatsappNumber}`
+      : "";
 
   // =========================================================
   // IMAGE URL HELPER
@@ -108,7 +356,6 @@ export default function EntrepreneurModal({
       return "/placeholder.jpg";
     }
 
-    // If backend already returns complete URL
     if (
       image.startsWith("http://") ||
       image.startsWith("https://")
@@ -116,9 +363,12 @@ export default function EntrepreneurModal({
       return image;
     }
 
-    // Otherwise return the path
     return image;
   };
+
+  // =========================================================
+  // MODAL
+  // =========================================================
 
   return (
     <>
@@ -131,12 +381,14 @@ export default function EntrepreneurModal({
           fixed
           inset-0
           bg-black/70
+          backdrop-blur-sm
           flex
           justify-center
           items-center
           p-4
           z-50
         "
+        onClick={onClose}
       >
 
         <div
@@ -144,11 +396,16 @@ export default function EntrepreneurModal({
             bg-white
             max-w-4xl
             w-full
-            rounded-2xl
-            overflow-y-auto
+            rounded-3xl
+            overflow-hidden
             max-h-[90vh]
             shadow-2xl
+            border
+            border-white/20
           "
+          onClick={(event) =>
+            event.stopPropagation()
+          }
         >
 
           {/* =================================================
@@ -159,7 +416,10 @@ export default function EntrepreneurModal({
 
             <img
               src={getImageUrl(profileImage)}
-              alt={person.name}
+              alt={
+                person.name ||
+                "Entrepreneur"
+              }
               className="
                 w-full
                 h-[300px]
@@ -171,16 +431,21 @@ export default function EntrepreneurModal({
 
             {/* IMAGE OVERLAY */}
 
-            <div className="
-              absolute
-              inset-0
-              bg-gradient-to-t
-              from-black/60
-              via-transparent
-              to-transparent
-            " />
+            <div
+              className="
+                absolute
+                inset-0
+                bg-gradient-to-t
+                from-black/70
+                via-black/10
+                to-transparent
+                pointer-events-none
+              "
+            />
 
-            {/* CLOSE BUTTON */}
+            {/* =================================================
+                CLOSE BUTTON
+            ================================================== */}
 
             <button
               onClick={onClose}
@@ -188,56 +453,87 @@ export default function EntrepreneurModal({
                 absolute
                 top-4
                 right-4
-                w-10
-                h-10
+                w-11
+                h-11
                 rounded-full
                 bg-black/60
+                backdrop-blur-sm
                 text-white
                 flex
                 items-center
                 justify-center
                 hover:bg-red-500
+                hover:scale-105
                 transition
+                z-20
               "
-              aria-label="Close"
+              aria-label="Close profile"
             >
               <FaTimes />
             </button>
 
-            {/* FAVORITE */}
+            {/* =================================================
+                LIKE BUTTON
+            ================================================== */}
 
             <button
               onClick={handleFavoriteClick}
+              disabled={liking}
               className={`
                 absolute
-                bottom-4
-                right-4
+                bottom-5
+                right-5
                 flex
                 items-center
                 gap-2
                 px-4
-                py-2
+                py-2.5
                 rounded-full
                 bg-white/95
-                shadow-lg
-                text-xl
-                transition
+                backdrop-blur-sm
+                shadow-xl
+                transition-all
+                duration-300
+                z-20
                 ${
                   favorite
                     ? "text-red-500"
-                    : "text-gray-500"
+                    : "text-slate-600"
+                }
+                ${
+                  liking
+                    ? "opacity-70 cursor-wait"
+                    : "hover:scale-105"
                 }
               `}
-              aria-label="Favorite entrepreneur"
+              aria-label={
+                favorite
+                  ? "Unlike entrepreneur"
+                  : "Like entrepreneur"
+              }
             >
 
-              <FaHeart />
+              <FaHeart
+                className={`
+                  text-xl
+                  transition-transform
+                  duration-300
+                  ${
+                    favorite
+                      ? "fill-current scale-110"
+                      : ""
+                  }
+                `}
+              />
 
-              <span className="
-                text-sm
-                font-semibold
-              ">
+              <span className="text-sm font-bold">
                 {favoriteCount}
+              </span>
+
+              <span className="text-xs font-medium">
+                {favoriteCount === 1
+                  ? "Like"
+                  : "Likes"}
               </span>
 
             </button>
@@ -248,44 +544,113 @@ export default function EntrepreneurModal({
               CONTENT
           ================================================== */}
 
-          <div className="p-6">
+          <div
+            className="
+              p-6
+              sm:p-8
+              overflow-y-auto
+              max-h-[calc(90vh-300px)]
+            "
+          >
 
             {/* =================================================
                 NAME
             ================================================== */}
 
-            <h2 className="
-              text-2xl
-              sm:text-3xl
-              font-bold
-              text-gray-900
-              mb-1
-            ">
+            <h2
+              className="
+                text-2xl
+                sm:text-3xl
+                font-bold
+                text-gray-900
+                mb-1
+              "
+            >
               {person.name}
             </h2>
 
-            {/* TITLE */}
+            {/* =================================================
+                TITLE
+            ================================================== */}
 
             {person.title && (
-              <p className="
-                text-amber-600
-                font-semibold
-                mb-3
-              ">
+              <p
+                className="
+                  text-amber-600
+                  font-semibold
+                  mb-3
+                "
+              >
                 {person.title}
               </p>
             )}
 
-            {/* LOCATION */}
+            {/* =================================================
+                LIKE SUMMARY
+            ================================================== */}
 
-            {person.location && (
-              <div className="
+            <div
+              className="
                 flex
                 items-center
-                gap-2
-                text-gray-500
+                gap-3
                 mb-5
-              ">
+              "
+            >
+
+              <div
+                className={`
+                  flex
+                  items-center
+                  gap-2
+                  px-4
+                  py-2
+                  rounded-full
+                  ${
+                    favorite
+                      ? "bg-red-50 text-red-500"
+                      : "bg-slate-100 text-slate-600"
+                  }
+                  transition
+                `}
+              >
+
+                <FaHeart
+                  className={
+                    favorite
+                      ? "fill-current"
+                      : ""
+                  }
+                />
+
+                <span className="font-bold">
+                  {favoriteCount}
+                </span>
+
+                <span className="text-sm">
+                  {favoriteCount === 1
+                    ? "person likes this"
+                    : "people like this"}
+                </span>
+
+              </div>
+
+            </div>
+
+            {/* =================================================
+                LOCATION
+            ================================================== */}
+
+            {person.location && (
+              <div
+                className="
+                  flex
+                  items-center
+                  gap-2
+                  text-gray-500
+                  mb-6
+                "
+              >
 
                 <FaMapMarkerAlt />
 
@@ -301,21 +666,25 @@ export default function EntrepreneurModal({
             ================================================== */}
 
             {person.description && (
-              <div className="mb-7">
+              <div className="mb-8">
 
-                <h3 className="
-                  text-xl
-                  font-bold
-                  text-gray-900
-                  mb-3
-                ">
+                <h3
+                  className="
+                    text-xl
+                    font-bold
+                    text-gray-900
+                    mb-3
+                  "
+                >
                   About
                 </h3>
 
-                <p className="
-                  text-gray-700
-                  leading-relaxed
-                ">
+                <p
+                  className="
+                    text-gray-700
+                    leading-relaxed
+                  "
+                >
                   {person.description}
                 </p>
 
@@ -330,21 +699,25 @@ export default function EntrepreneurModal({
 
               <div className="mb-8">
 
-                <h3 className="
-                  text-xl
-                  font-bold
-                  text-gray-900
-                  mb-4
-                ">
+                <h3
+                  className="
+                    text-xl
+                    font-bold
+                    text-gray-900
+                    mb-4
+                  "
+                >
                   Their Work
                 </h3>
 
-                <div className="
-                  grid
-                  grid-cols-1
-                  sm:grid-cols-3
-                  gap-4
-                ">
+                <div
+                  className="
+                    grid
+                    grid-cols-1
+                    sm:grid-cols-3
+                    gap-4
+                  "
+                >
 
                   {works
                     .slice(0, 3)
@@ -380,6 +753,7 @@ export default function EntrepreneurModal({
                             overflow-hidden
                             rounded-xl
                             bg-gray-100
+                            shadow-sm
                           "
                         >
 
@@ -399,15 +773,15 @@ export default function EntrepreneurModal({
                             "
                           />
 
-                          {/* IMAGE OVERLAY */}
-
-                          <div className="
-                            absolute
-                            inset-0
-                            bg-black/0
-                            group-hover:bg-black/20
-                            transition
-                          " />
+                          <div
+                            className="
+                              absolute
+                              inset-0
+                              bg-black/0
+                              group-hover:bg-black/20
+                              transition
+                            "
+                          />
 
                         </button>
                       );
@@ -416,7 +790,6 @@ export default function EntrepreneurModal({
                 </div>
 
               </div>
-
             )}
 
             {/* =================================================
@@ -427,24 +800,28 @@ export default function EntrepreneurModal({
 
               <div className="mb-8">
 
-                <h3 className="
-                  text-xl
-                  font-bold
-                  text-gray-900
-                  mb-4
-                ">
+                <h3
+                  className="
+                    text-xl
+                    font-bold
+                    text-gray-900
+                    mb-4
+                  "
+                >
                   Featured Video
                 </h3>
 
-                <div className="
-                  relative
-                  w-full
-                  aspect-video
-                  rounded-xl
-                  overflow-hidden
-                  shadow-lg
-                  bg-black
-                ">
+                <div
+                  className="
+                    relative
+                    w-full
+                    aspect-video
+                    rounded-xl
+                    overflow-hidden
+                    shadow-lg
+                    bg-black
+                  "
+                >
 
                   <iframe
                     className="
@@ -468,7 +845,6 @@ export default function EntrepreneurModal({
                 </div>
 
               </div>
-
             )}
 
             {/* =================================================
@@ -482,22 +858,28 @@ export default function EntrepreneurModal({
               youtube ||
               website) && (
 
-              <div className="
-                border-t
-                border-gray-200
-                pt-6
-              ">
+              <div
+                className="
+                  border-t
+                  border-gray-200
+                  pt-6
+                "
+              >
 
-                <h3 className="
-                  text-xl
-                  font-bold
-                  text-gray-900
-                  mb-4
-                ">
+                <h3
+                  className="
+                    text-xl
+                    font-bold
+                    text-gray-900
+                    mb-4
+                  "
+                >
                   Connect With {person.name}
                 </h3>
 
-                {/* WHATSAPP BUTTON */}
+                {/* =================================================
+                    WHATSAPP
+                ================================================== */}
 
                 {whatsappUrl && (
 
@@ -520,6 +902,8 @@ export default function EntrepreneurModal({
                       rounded-xl
                       font-semibold
                       transition
+                      shadow-sm
+                      hover:shadow-lg
                     "
                   >
 
@@ -531,22 +915,24 @@ export default function EntrepreneurModal({
                     on WhatsApp
 
                   </a>
-
                 )}
 
-                {/* SOCIAL ICONS */}
+                {/* =================================================
+                    SOCIAL ICONS
+                ================================================== */}
 
-                <div className="
-                  flex
-                  flex-wrap
-                  items-center
-                  gap-4
-                ">
+                <div
+                  className="
+                    flex
+                    flex-wrap
+                    items-center
+                    gap-4
+                  "
+                >
 
                   {/* INSTAGRAM */}
 
                   {instagram && (
-
                     <a
                       href={instagram}
                       target="_blank"
@@ -570,13 +956,11 @@ export default function EntrepreneurModal({
                     >
                       <FaInstagram />
                     </a>
-
                   )}
 
                   {/* FACEBOOK */}
 
                   {facebook && (
-
                     <a
                       href={facebook}
                       target="_blank"
@@ -600,13 +984,11 @@ export default function EntrepreneurModal({
                     >
                       <FaFacebook />
                     </a>
-
                   )}
 
                   {/* TIKTOK */}
 
                   {tiktok && (
-
                     <a
                       href={tiktok}
                       target="_blank"
@@ -630,13 +1012,11 @@ export default function EntrepreneurModal({
                     >
                       <FaTiktok />
                     </a>
-
                   )}
 
                   {/* YOUTUBE */}
 
                   {youtube && (
-
                     <a
                       href={youtube}
                       target="_blank"
@@ -660,13 +1040,11 @@ export default function EntrepreneurModal({
                     >
                       <FaYoutube />
                     </a>
-
                   )}
 
                   {/* WEBSITE */}
 
                   {website && (
-
                     <a
                       href={website}
                       target="_blank"
@@ -690,13 +1068,11 @@ export default function EntrepreneurModal({
                     >
                       <FaGlobe />
                     </a>
-
                   )}
 
                 </div>
 
               </div>
-
             )}
 
           </div>
@@ -755,8 +1131,8 @@ export default function EntrepreneurModal({
           <img
             src={lightbox}
             alt="Enlarged work"
-            onClick={(e) =>
-              e.stopPropagation()
+            onClick={(event) =>
+              event.stopPropagation()
             }
             className="
               max-h-[90vh]
@@ -768,7 +1144,6 @@ export default function EntrepreneurModal({
           />
 
         </div>
-
       )}
 
     </>
