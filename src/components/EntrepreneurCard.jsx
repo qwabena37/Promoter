@@ -356,8 +356,6 @@ export default function EntrepreneurCard({ person, onClick }) {
         "
       >
 
-        {/* BLURRED BACKGROUND */}
-
         {profileImage && (
           <img
             src={profileImage}
@@ -375,8 +373,6 @@ export default function EntrepreneurCard({ person, onClick }) {
             "
           />
         )}
-
-        {/* MAIN PROFILE IMAGE */}
 
         <div
           className="
@@ -453,8 +449,6 @@ export default function EntrepreneurCard({ person, onClick }) {
             </div>
 
           )}
-
-          {/* IMAGE FALLBACK */}
 
           {profileImage && (
             <div
@@ -540,9 +534,7 @@ export default function EntrepreneurCard({ person, onClick }) {
           </div>
         )}
 
-        {/* =================================================
-            LIKE BUTTON
-        ================================================== */}
+        {/* LIKE BUTTON */}
 
         <button
           type="button"
@@ -651,6 +643,23 @@ export default function EntrepreneurCard({ person, onClick }) {
         "
       >
 
+        {/* =====================================================
+            INTRODUCTION
+        ====================================================== */}
+
+        <p
+          className="
+            text-xs
+            uppercase
+            tracking-[0.18em]
+            font-semibold
+            text-amber-500
+            mb-2
+          "
+        >
+          Hello there, meet
+        </p>
+
         {/* NAME */}
 
         <h3
@@ -682,46 +691,9 @@ export default function EntrepreneurCard({ person, onClick }) {
           </p>
         )}
 
-        {/* LOCATION */}
-
-        {person?.location && (
-          <div
-            className="
-              flex
-              items-center
-              gap-2
-              mt-3
-              text-sm
-              text-slate-500
-            "
-          >
-            <span>📍</span>
-
-            <span>
-              {person.location}
-            </span>
-          </div>
-        )}
-
-        {/* DESCRIPTION */}
-
-        {person?.description && (
-          <p
-            className="
-              mt-4
-              text-slate-600
-              text-sm
-              leading-relaxed
-              line-clamp-4
-            "
-          >
-            {person.description}
-          </p>
-        )}
-
-        {/* =================================================
+        {/* =====================================================
             WORK GALLERY
-        ================================================== */}
+        ====================================================== */}
 
         {gallery.length > 0 && (
 
@@ -830,9 +802,9 @@ export default function EntrepreneurCard({ person, onClick }) {
 
         )}
 
-        {/* =================================================
+        {/* =====================================================
             SOCIAL LINKS
-        ================================================== */}
+        ====================================================== */}
 
         {socialLinks.length > 0 && (
 
@@ -892,9 +864,9 @@ export default function EntrepreneurCard({ person, onClick }) {
 
         )}
 
-        {/* =================================================
+        {/* =====================================================
             BOTTOM ACTION
-        ================================================== */}
+        ====================================================== */}
 
         <div
           className="
@@ -934,3 +906,4 @@ export default function EntrepreneurCard({ person, onClick }) {
     </article>
   );
 }
+
