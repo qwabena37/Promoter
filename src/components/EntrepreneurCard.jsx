@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { FaHeart } from "react-icons/fa";
 import api from "../services/api";
@@ -6,11 +7,6 @@ export default function EntrepreneurCard({
   person,
   onClick,
 }) {
-  // =========================================================
-  // SOCIAL DATA
-  // =========================================================
-
-
   // =========================================================
   // PROFILE IMAGE
   // =========================================================
@@ -30,8 +26,6 @@ export default function EntrepreneurCard({
     ? person.gallery
     : [];
 
-  // Gallery remains available for compatibility
-  // and for the EntrepreneurModal.
   void gallery;
 
   // =========================================================
@@ -496,22 +490,46 @@ export default function EntrepreneurCard({
           <div
             className="
               absolute
-              top-4
-              left-4
+              top-3
+              left-3
               bg-amber-400
               text-slate-900
-              px-3
-              py-1.5
+              px-2
+              py-1
               rounded-full
-              text-xs
+              text-[10px]
               font-bold
-              shadow-lg
+              shadow
               z-10
             "
           >
             Featured
           </div>
         )}
+
+        {/* =================================================
+            HELLO THERE
+        ================================================== */}
+
+        <div
+          className="
+            absolute
+            bottom-4
+            left-4
+            bg-white/95
+            backdrop-blur-sm
+            text-slate-900
+            px-3
+            py-1.5
+            rounded-full
+            text-xs
+            font-semibold
+            shadow-lg
+            z-10
+          "
+        >
+          Hello there
+        </div>
 
         {/* =================================================
             LIKE BUTTON
@@ -707,3 +725,4 @@ export default function EntrepreneurCard({
     </article>
   );
 }
+
