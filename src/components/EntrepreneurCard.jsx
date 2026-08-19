@@ -189,6 +189,10 @@ export default function EntrepreneurCard({
     console.log("Currently liked:", liked);
     console.log("=================================");
 
+    // =====================================================
+    // UNLIKE
+    // =====================================================
+
     if (liked) {
       console.log("Sending UNLIKE request...");
 
@@ -201,18 +205,27 @@ export default function EntrepreneurCard({
         }
       );
 
-      console.log("UNLIKE response:", response.data);
+      console.log("UNLIKE response:", response);
 
       setLiked(false);
 
       setLikesCount(
-        Number(response.data?.likes_count ?? 0)
+        Number(
+          response.data?.likes_count ??
+            Math.max(likesCount - 1, 0)
+        )
       );
 
       saveLikeStatus(false);
 
+      console.log("UNLIKE successful");
+
       return;
     }
+
+    // =====================================================
+    // LIKE
+    // =====================================================
 
     console.log("Sending LIKE request...");
 
@@ -223,22 +236,28 @@ export default function EntrepreneurCard({
       }
     );
 
-    console.log("LIKE response:", response.data);
+    console.log("LIKE response:", response);
 
     setLiked(true);
 
     setLikesCount(
-      Number(response.data?.likes_count ?? 0)
+      Number(
+        response.data?.likes_count ??
+          likesCount + 1
+      )
     );
 
     saveLikeStatus(true);
 
+    console.log("LIKE successful");
+
   } catch (error) {
 
-    console.error(
-      "LIKE ERROR:",
-      error
-    );
+    console.error("=================================");
+    console.error("LIKE/UNLIKE ERROR");
+    console.error("=================================");
+
+    console.error("Error:", error);
 
     console.error(
       "Status:",
@@ -246,13 +265,28 @@ export default function EntrepreneurCard({
     );
 
     console.error(
-      "Response:",
+      "Response data:",
       error?.response?.data
     );
 
     console.error(
-      "URL:",
+      "Response headers:",
+      error?.response?.headers
+    );
+
+    console.error(
+      "Request URL:",
       error?.config?.url
+    );
+
+    console.error(
+      "Request method:",
+      error?.config?.method
+    );
+
+    console.error(
+      "Request data:",
+      error?.config?.data
     );
 
   } finally {
