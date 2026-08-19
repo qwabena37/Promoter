@@ -4,7 +4,7 @@ import React, {
 } from "react";
 
 import {
-  FaLinkedIn,
+  FaLinkedin,
   FaFacebook,
   FaInstagram,
   FaTiktok,
@@ -306,11 +306,10 @@ export default function EntrepreneurModal({
     socials?.facebook ||
     "";
 
-  const linkedin =
-  person?.linkedIn ||
-  socials?.linkedIn ||
-
-  "";
+  const linkedIn =
+    person?.linkedIn ||
+    socials?.linkedIn ||
+    "";
 
   const tiktok =
     person?.tiktok ||

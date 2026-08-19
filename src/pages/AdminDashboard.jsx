@@ -166,13 +166,12 @@ export default function AdminDashboard() {
       location: "",
       description: "",
       video: "",
-
       whatsapp: "",
       instagram: "",
       facebook: "",
       tiktok: "",
       youtube: "",
-      linkedIn: "",
+      linkedin: "",
       website: "",
 
       featured: false,
@@ -213,7 +212,7 @@ export default function AdminDashboard() {
       facebook: person.facebook || "",
       tiktok: person.tiktok || "",
       youtube: person.youtube || "",
-      linkedIn: person.linkedIn || "",
+      linkedin: person.linkedIn || "",
       website: person.website || "",
 
       featured: Boolean(person.featured),
@@ -334,10 +333,10 @@ export default function AdminDashboard() {
          LINKEDIN
       ====================================================== */
 
-      if (formData.linkedIn?.trim()) {
+      if (formData.linkedin?.trim()) {
         form.append(
-          "linkedIn",
-          formData.linkedIn.trim()
+          "linkedin",
+          formData.linkedin.trim()
         );
       }
 
