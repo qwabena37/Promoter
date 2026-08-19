@@ -15,7 +15,7 @@ import {
   FaSearch,
   FaTimes,
   FaImage,
-  FaLinkedIn,
+  FaLinkedin,
 } from "react-icons/fa";
 
 export default function AdminDashboard() {
@@ -47,7 +47,7 @@ export default function AdminDashboard() {
     facebook: "",
     tiktok: "",
     youtube: "",
-    linkedIn: "",
+    linkedin: "",
     website: "",
 
     featured: false,
