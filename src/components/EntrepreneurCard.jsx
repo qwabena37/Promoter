@@ -172,127 +172,82 @@ export default function EntrepreneurCard({
   // LIKE / UNLIKE
   // =========================================================
 
- const handleLike = async (event) => {
-  event.stopPropagation();
+  const handleLike = async (event) => {
+    event.stopPropagation();
 
-  if (!person?.id || liking) return;
+    if (!person?.id || liking) return;
 
-  try {
-    setLiking(true);
+    try {
+      setLiking(true);
 
-    const visitorId = getVisitorId();
+      const visitorId =
+        getVisitorId();
 
-    console.log("=================================");
-    console.log("LIKE ACTION");
-    console.log("Entrepreneur ID:", person.id);
-    console.log("Visitor ID:", visitorId);
-    console.log("Currently liked:", liked);
-    console.log("=================================");
+      // =====================================================
+      // UNLIKE
+      // =====================================================
 
-    // =====================================================
-    // UNLIKE
-    // =====================================================
+      if (liked) {
+        const response =
+          await api.delete(
+            `/entrepreneurs/${person.id}/like/`,
+            {
+              params: {
+                visitor_id:
+                  visitorId,
+              },
+            }
+          );
 
-    if (liked) {
-      console.log("Sending UNLIKE request...");
+        setLiked(false);
 
-      const response = await api.delete(
-        `/entrepreneurs/${person.id}/like/`,
-        {
-          params: {
-            visitor_id: visitorId,
-          },
-        }
-      );
+        setLikesCount(
+          Number(
+            response.data?.likes_count ??
+              Math.max(
+                likesCount - 1,
+                0
+              )
+          )
+        );
 
-      console.log("UNLIKE response:", response);
+        saveLikeStatus(false);
 
-      setLiked(false);
+        return;
+      }
+
+      // =====================================================
+      // LIKE
+      // =====================================================
+
+      const response =
+        await api.post(
+          `/entrepreneurs/${person.id}/like/`,
+          {
+            visitor_id:
+              visitorId,
+          }
+        );
+
+      setLiked(true);
 
       setLikesCount(
         Number(
           response.data?.likes_count ??
-            Math.max(likesCount - 1, 0)
+            likesCount + 1
         )
       );
 
-      saveLikeStatus(false);
-
-      console.log("UNLIKE successful");
-
-      return;
+      saveLikeStatus(true);
+    } catch (error) {
+      console.error(
+        "Failed to update like:",
+        error
+      );
+    } finally {
+      setLiking(false);
     }
-
-    // =====================================================
-    // LIKE
-    // =====================================================
-
-    console.log("Sending LIKE request...");
-
-    const response = await api.post(
-      `/entrepreneurs/${person.id}/like/`,
-      {
-        visitor_id: visitorId,
-      }
-    );
-
-    console.log("LIKE response:", response);
-
-    setLiked(true);
-
-    setLikesCount(
-      Number(
-        response.data?.likes_count ??
-          likesCount + 1
-      )
-    );
-
-    saveLikeStatus(true);
-
-    console.log("LIKE successful");
-
-  } catch (error) {
-
-    console.error("=================================");
-    console.error("LIKE/UNLIKE ERROR");
-    console.error("=================================");
-
-    console.error("Error:", error);
-
-    console.error(
-      "Status:",
-      error?.response?.status
-    );
-
-    console.error(
-      "Response data:",
-      error?.response?.data
-    );
-
-    console.error(
-      "Response headers:",
-      error?.response?.headers
-    );
-
-    console.error(
-      "Request URL:",
-      error?.config?.url
-    );
-
-    console.error(
-      "Request method:",
-      error?.config?.method
-    );
-
-    console.error(
-      "Request data:",
-      error?.config?.data
-    );
-
-  } finally {
-    setLiking(false);
-  }
-};
+  };
 
   // =========================================================
   // IMAGE FALLBACK
