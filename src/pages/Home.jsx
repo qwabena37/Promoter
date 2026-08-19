@@ -389,85 +389,112 @@ export default function Home() {
           STATS SECTION
       ====================================================== */}
 
-      <section className="
-        bg-gradient-to-r
-        from-slate-900
-        via-blue-900
-        to-slate-800
-        text-white
-        py-16
-      ">
+      <section
+  className="
+    bg-gradient-to-r
+    from-slate-900
+    via-blue-900
+    to-slate-800
+    text-white
+    py-10
+    sm:py-12
+    md:py-16
+  "
+>
+  <div
+    className="
+      max-w-5xl
+      mx-auto
+      text-center
+      px-4
+      sm:px-6
+    "
+  >
+    <h2
+      className="
+        text-2xl
+        sm:text-3xl
+        font-bold
+        mb-7
+        sm:mb-10
+      "
+    >
+      Our Growing Impact
+    </h2>
 
-        <div className="
-          max-w-5xl
-          mx-auto
-          text-center
-          px-6
-        ">
+    <div
+      className="
+        flex
+        flex-row
+        justify-center
+        items-start
+        gap-6
+        sm:gap-12
+        md:gap-20
+      "
+    >
+      {/* ENTREPRENEURS */}
 
-          <h2 className="
+      <div className="flex-1 min-w-0">
+        <h3
+          className="
             text-3xl
+            sm:text-4xl
+            md:text-5xl
             font-bold
-            mb-10
-          ">
-            Our Growing Impact
-          </h2>
+            text-amber-400
+          "
+        >
+          {entreCount}+
+        </h3>
 
-          <div className="
-            flex
-            flex-col
-            md:flex-row
-            justify-center
-            gap-12
-          ">
+        <p
+          className="
+            mt-2
+            sm:mt-3
+            text-xs
+            sm:text-sm
+            md:text-base
+            text-slate-200
+            leading-tight
+          "
+        >
+          Young Entrepreneurs Exposed
+        </p>
+      </div>
 
-            {/* ENTREPRENEURS */}
+      {/* BUSINESSES */}
 
-            <div>
+      <div className="flex-1 min-w-0">
+        <h3
+          className="
+            text-3xl
+            sm:text-4xl
+            md:text-5xl
+            font-bold
+            text-amber-400
+          "
+        >
+          {bizCount}+
+        </h3>
 
-              <h3 className="
-                text-5xl
-                font-bold
-                text-amber-400
-              ">
-                {entreCount}+
-              </h3>
-
-              <p className="
-                mt-3
-                text-slate-200
-              ">
-                Young Entrepreneurs Exposed
-              </p>
-
-            </div>
-
-            {/* BUSINESSES */}
-
-            <div>
-
-              <h3 className="
-                text-5xl
-                font-bold
-                text-amber-400
-              ">
-                {bizCount}+
-              </h3>
-
-              <p className="
-                mt-3
-                text-slate-200
-              ">
-                Businesses Promoted
-              </p>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
+        <p
+          className="
+            mt-2
+            sm:mt-3
+            text-xs
+            sm:text-sm
+            md:text-base
+            text-slate-200
+            leading-tight
+          "
+        >
+          Businesses Promoted
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
 
       {/* =====================================================
           FOOTER
