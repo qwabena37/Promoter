@@ -870,7 +870,7 @@ export default function EntrepreneurModal({
                         text-slate-900
                       "
                     >
-                      Their Work
+                      My Work
                     </h3>
 
                     <span className="text-sm text-slate-400">
@@ -1248,9 +1248,9 @@ export default function EntrepreneurModal({
                       </SocialLink>
                     )}
                     
-                    {linkedIn && (
+                    {linkedin && (
                       <SocialLink
-                        href={linkedIn}
+                        href={linkedin} 
                         label="LinkedIn"
                         className="hover:bg-blue-100 hover:text-blue-600"
                       >
