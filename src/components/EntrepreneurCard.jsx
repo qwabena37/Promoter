@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { FaHeart } from "react-icons/fa";
 import api from "../services/api";
@@ -15,18 +14,6 @@ export default function EntrepreneurCard({
     person?.image ||
     person?.profile_image ||
     null;
-
-  // =========================================================
-  // GALLERY COMPATIBILITY
-  // =========================================================
-
-  const gallery = Array.isArray(person?.works)
-    ? person.works
-    : Array.isArray(person?.gallery)
-    ? person.gallery
-    : [];
-
-  void gallery;
 
   // =========================================================
   // LIKE STATES
@@ -58,9 +45,10 @@ export default function EntrepreneurCard({
   // =========================================================
 
   const getVisitorId = () => {
-    let visitorId = localStorage.getItem(
-      "entrepreneur_visitor_id"
-    );
+    let visitorId =
+      localStorage.getItem(
+        "entrepreneur_visitor_id"
+      );
 
     if (!visitorId) {
       if (
@@ -109,9 +97,12 @@ export default function EntrepreneurCard({
         ) || "[]"
       );
 
+      const entrepreneurId =
+        String(person.id);
+
       setLiked(
         storedLikes.includes(
-          String(person.id)
+          entrepreneurId
         )
       );
     } catch (error) {
@@ -119,6 +110,8 @@ export default function EntrepreneurCard({
         "Failed to check like status:",
         error
       );
+
+      setLiked(false);
     }
   }, [person?.id]);
 
@@ -127,6 +120,8 @@ export default function EntrepreneurCard({
   // =========================================================
 
   const saveLikeStatus = (isLiked) => {
+    if (!person?.id) return;
+
     try {
       const storedLikes = JSON.parse(
         localStorage.getItem(
@@ -150,7 +145,8 @@ export default function EntrepreneurCard({
         updatedLikes =
           storedLikes.filter(
             (id) =>
-              id !== entrepreneurId
+              String(id) !==
+              entrepreneurId
           );
       }
 
@@ -173,9 +169,37 @@ export default function EntrepreneurCard({
   // =========================================================
 
   const handleLike = async (event) => {
+    event.preventDefault();
     event.stopPropagation();
 
-    if (!person?.id || liking) return;
+    console.log(
+      "================================="
+    );
+
+    console.log(
+      "LIKE ACTION"
+    );
+
+    console.log(
+      "Entrepreneur ID:",
+      person?.id
+    );
+
+    if (!person?.id) {
+      console.error(
+        "No entrepreneur ID found."
+      );
+
+      return;
+    }
+
+    if (liking) {
+      console.log(
+        "Like request already in progress."
+      );
+
+      return;
+    }
 
     try {
       setLiking(true);
@@ -183,11 +207,25 @@ export default function EntrepreneurCard({
       const visitorId =
         getVisitorId();
 
+      console.log(
+        "Visitor ID:",
+        visitorId
+      );
+
+      console.log(
+        "Currently liked:",
+        liked
+      );
+
       // =====================================================
       // UNLIKE
       // =====================================================
 
       if (liked) {
+        console.log(
+          "Sending UNLIKE request..."
+        );
+
         const response =
           await api.delete(
             `/entrepreneurs/${person.id}/like/`,
@@ -199,19 +237,37 @@ export default function EntrepreneurCard({
             }
           );
 
-        setLiked(false);
+        console.log(
+          "UNLIKE response:",
+          response
+        );
 
-        setLikesCount(
+        console.log(
+          "UNLIKE data:",
+          response.data
+        );
+
+        const newCount =
           Number(
-            response.data?.likes_count ??
+            response.data
+              ?.likes_count ??
               Math.max(
                 likesCount - 1,
                 0
               )
-          )
+          );
+
+        setLiked(false);
+
+        setLikesCount(
+          newCount
         );
 
         saveLikeStatus(false);
+
+        console.log(
+          "Successfully unliked."
+        );
 
         return;
       }
@@ -219,6 +275,10 @@ export default function EntrepreneurCard({
       // =====================================================
       // LIKE
       // =====================================================
+
+      console.log(
+        "Sending LIKE request..."
+      );
 
       const response =
         await api.post(
@@ -229,21 +289,73 @@ export default function EntrepreneurCard({
           }
         );
 
+      console.log(
+        "LIKE response:",
+        response
+      );
+
+      console.log(
+        "LIKE data:",
+        response.data
+      );
+
+      const newCount =
+        Number(
+          response.data
+            ?.likes_count ??
+            likesCount + 1
+        );
+
       setLiked(true);
 
       setLikesCount(
-        Number(
-          response.data?.likes_count ??
-            likesCount + 1
-        )
+        newCount
       );
 
       saveLikeStatus(true);
+
+      console.log(
+        "Successfully liked."
+      );
+
     } catch (error) {
       console.error(
-        "Failed to update like:",
+        "================================="
+      );
+
+      console.error(
+        "LIKE REQUEST FAILED"
+      );
+
+      console.error(
+        "Error:",
         error
       );
+
+      console.error(
+        "Status:",
+        error?.response?.status
+      );
+
+      console.error(
+        "Response:",
+        error?.response?.data
+      );
+
+      console.error(
+        "URL:",
+        error?.config?.url
+      );
+
+      console.error(
+        "Method:",
+        error?.config?.method
+      );
+
+      console.error(
+        "================================="
+      );
+
     } finally {
       setLiking(false);
     }
@@ -279,12 +391,16 @@ export default function EntrepreneurCard({
 
   const handleOpenProfile = (event) => {
     if (event) {
+      event.preventDefault();
       event.stopPropagation();
     }
 
     if (!person) return;
 
-    if (typeof onClick === "function") {
+    if (
+      typeof onClick ===
+      "function"
+    ) {
       onClick(person);
     }
   };
@@ -369,7 +485,9 @@ export default function EntrepreneurCard({
                 person?.name ||
                 "Entrepreneur"
               }
-              onError={handleImageError}
+              onError={
+                handleImageError
+              }
               className="
                 relative
                 w-full
@@ -509,7 +627,7 @@ export default function EntrepreneurCard({
         )}
 
         {/* =================================================
-            HELLO THERE / ENTREPRENEUR INTRO
+            ENTREPRENEUR INTRO
         ================================================== */}
 
         <div
@@ -532,7 +650,6 @@ export default function EntrepreneurCard({
           >
             Hello there👋, meet
           </p>
-
         </div>
 
         {/* =================================================
@@ -548,6 +665,7 @@ export default function EntrepreneurCard({
               ? "Unlike entrepreneur"
               : "Like entrepreneur"
           }
+          aria-pressed={liked}
           className={`
             absolute
             top-4
