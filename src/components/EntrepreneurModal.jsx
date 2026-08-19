@@ -1249,9 +1249,9 @@ export default function EntrepreneurModal({
                       </SocialLink>
                     )}
                     
-                    {linkedin && (
+                    {linkedIn && (
                       <SocialLink
-                        href={linkedin}
+                        href={linkedIn}
                         label="LinkedIn"
                         className="hover:bg-blue-100 hover:text-blue-600"
                       >

@@ -15,7 +15,7 @@ import {
   FaSearch,
   FaTimes,
   FaImage,
-  FaLinkedin,
+  FaLinkedIn,
 } from "react-icons/fa";
 
 export default function AdminDashboard() {
@@ -334,10 +334,10 @@ export default function AdminDashboard() {
          LINKEDIN
       ====================================================== */
 
-      if (formData.linkedin?.trim()) {
+      if (formData.linkedIn?.trim()) {
         form.append(
-          "linkedin",
-          formData.linkedin.trim()
+          "linkedIn",
+          formData.linkedIn.trim()
         );
       }
 
