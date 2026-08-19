@@ -1170,6 +1170,7 @@ export default function EntrepreneurModal({
               {(whatsapp ||
                 instagram ||
                 facebook ||
+                linkedin ||
                 tiktok ||
                 youtube ||
                 website) && (
@@ -1254,7 +1255,7 @@ export default function EntrepreneurModal({
                         label="LinkedIn"
                         className="hover:bg-blue-100 hover:text-blue-600"
                       >
-                        <FaLinkedIn />
+                        <FaLinkedin />
                       </SocialLink>
                     )}
 

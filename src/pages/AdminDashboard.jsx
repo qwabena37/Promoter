@@ -212,7 +212,7 @@ export default function AdminDashboard() {
       facebook: person.facebook || "",
       tiktok: person.tiktok || "",
       youtube: person.youtube || "",
-      linkedin: person.linkedIn || "",
+      linkedin: person.linkedin || "",
       website: person.website || "",
 
       featured: Boolean(person.featured),
