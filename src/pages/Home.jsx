@@ -428,14 +428,13 @@ export default function Home() {
         flex-row
         justify-center
         items-start
-        gap-6
+        gap-8
         sm:gap-12
-        md:gap-20
       "
     >
       {/* ENTREPRENEURS */}
 
-      <div className="flex-1 min-w-0">
+      <div>
         <h3
           className="
             text-3xl
@@ -457,6 +456,9 @@ export default function Home() {
             md:text-base
             text-slate-200
             leading-tight
+            max-w-[130px]
+            sm:max-w-none
+            mx-auto
           "
         >
           Young Entrepreneurs Exposed
@@ -465,7 +467,7 @@ export default function Home() {
 
       {/* BUSINESSES */}
 
-      <div className="flex-1 min-w-0">
+      <div>
         <h3
           className="
             text-3xl
@@ -487,6 +489,9 @@ export default function Home() {
             md:text-base
             text-slate-200
             leading-tight
+            max-w-[130px]
+            sm:max-w-none
+            mx-auto
           "
         >
           Businesses Promoted
