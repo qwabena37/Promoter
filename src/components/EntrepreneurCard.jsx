@@ -172,82 +172,93 @@ export default function EntrepreneurCard({
   // LIKE / UNLIKE
   // =========================================================
 
-  const handleLike = async (event) => {
-    event.stopPropagation();
+ const handleLike = async (event) => {
+  event.stopPropagation();
 
-    if (!person?.id || liking) return;
+  if (!person?.id || liking) return;
 
-    try {
-      setLiking(true);
+  try {
+    setLiking(true);
 
-      const visitorId =
-        getVisitorId();
+    const visitorId = getVisitorId();
 
-      // =====================================================
-      // UNLIKE
-      // =====================================================
+    console.log("=================================");
+    console.log("LIKE ACTION");
+    console.log("Entrepreneur ID:", person.id);
+    console.log("Visitor ID:", visitorId);
+    console.log("Currently liked:", liked);
+    console.log("=================================");
 
-      if (liked) {
-        const response =
-          await api.delete(
-            `/entrepreneurs/${person.id}/like/`,
-            {
-              params: {
-                visitor_id:
-                  visitorId,
-              },
-            }
-          );
+    if (liked) {
+      console.log("Sending UNLIKE request...");
 
-        setLiked(false);
+      const response = await api.delete(
+        `/entrepreneurs/${person.id}/like/`,
+        {
+          params: {
+            visitor_id: visitorId,
+          },
+        }
+      );
 
-        setLikesCount(
-          Number(
-            response.data?.likes_count ??
-              Math.max(
-                likesCount - 1,
-                0
-              )
-          )
-        );
+      console.log("UNLIKE response:", response.data);
 
-        saveLikeStatus(false);
-
-        return;
-      }
-
-      // =====================================================
-      // LIKE
-      // =====================================================
-
-      const response =
-        await api.post(
-          `/entrepreneurs/${person.id}/like/`,
-          {
-            visitor_id:
-              visitorId,
-          }
-        );
-
-      setLiked(true);
+      setLiked(false);
 
       setLikesCount(
-        Number(
-          response.data?.likes_count ??
-            likesCount + 1
-        )
+        Number(response.data?.likes_count ?? 0)
       );
 
-      saveLikeStatus(true);
-    } catch (error) {
-      console.error(
-        "Failed to update like:",
-        error
-      );
-    } finally {
-      setLiking(false);
+      saveLikeStatus(false);
+
+      return;
     }
-  };
+
+    console.log("Sending LIKE request...");
+
+    const response = await api.post(
+      `/entrepreneurs/${person.id}/like/`,
+      {
+        visitor_id: visitorId,
+      }
+    );
+
+    console.log("LIKE response:", response.data);
+
+    setLiked(true);
+
+    setLikesCount(
+      Number(response.data?.likes_count ?? 0)
+    );
+
+    saveLikeStatus(true);
+
+  } catch (error) {
+
+    console.error(
+      "LIKE ERROR:",
+      error
+    );
+
+    console.error(
+      "Status:",
+      error?.response?.status
+    );
+
+    console.error(
+      "Response:",
+      error?.response?.data
+    );
+
+    console.error(
+      "URL:",
+      error?.config?.url
+    );
+
+  } finally {
+    setLiking(false);
+  }
+};
 
   // =========================================================
   // IMAGE FALLBACK
