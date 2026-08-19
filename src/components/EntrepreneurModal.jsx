@@ -1,3 +1,4 @@
+
 import React, {
   useEffect,
   useState,
@@ -14,75 +15,95 @@ import {
   FaWhatsapp,
   FaMapMarkerAlt,
   FaExternalLinkAlt,
+  FaPlay,
 } from "react-icons/fa";
 
 import api from "../services/api";
+
 
 export default function EntrepreneurModal({
   person,
   onClose,
 }) {
+
   // =========================================================
   // STATES
   // =========================================================
 
-  const [lightbox, setLightbox] = useState(null);
+  const [lightbox, setLightbox] =
+    useState(null);
 
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] =
+    useState(false);
 
-  const [likesCount, setLikesCount] = useState(
-    Number(person?.likes_count || 0)
-  );
+  const [likesCount, setLikesCount] =
+    useState(
+      Number(person?.likes_count || 0)
+    );
 
-  const [liking, setLiking] = useState(false);
+  const [liking, setLiking] =
+    useState(false);
+
 
   // =========================================================
   // UPDATE LIKE COUNT
   // =========================================================
 
   useEffect(() => {
+
     setLikesCount(
       Number(person?.likes_count || 0)
     );
+
   }, [
     person?.id,
     person?.likes_count,
   ]);
+
 
   // =========================================================
   // CHECK LOCAL LIKE STATUS
   // =========================================================
 
   useEffect(() => {
+
     if (!person?.id) {
       return;
     }
 
     try {
-      const storedLikes = JSON.parse(
-        localStorage.getItem(
-          "liked_entrepreneurs"
-        ) || "[]"
-      );
+
+      const storedLikes =
+        JSON.parse(
+          localStorage.getItem(
+            "liked_entrepreneurs"
+          ) || "[]"
+        );
 
       setLiked(
         storedLikes.includes(
           String(person.id)
         )
       );
+
     } catch (error) {
+
       console.error(
         "Failed to read like status:",
         error
       );
+
     }
+
   }, [person?.id]);
 
+
   // =========================================================
-  // PREVENT BODY SCROLL WHEN MODAL IS OPEN
+  // PREVENT BODY SCROLL
   // =========================================================
 
   useEffect(() => {
+
     if (!person) {
       return;
     }
@@ -90,31 +111,45 @@ export default function EntrepreneurModal({
     const originalOverflow =
       document.body.style.overflow;
 
-    document.body.style.overflow = "hidden";
+    document.body.style.overflow =
+      "hidden";
 
     return () => {
+
       document.body.style.overflow =
         originalOverflow;
+
     };
+
   }, [person]);
+
 
   // =========================================================
   // ESCAPE KEY
   // =========================================================
 
   useEffect(() => {
+
     if (!person) {
       return;
     }
 
     const handleKeyDown = (event) => {
+
       if (event.key === "Escape") {
+
         if (lightbox) {
+
           setLightbox(null);
+
         } else {
+
           onClose?.();
+
         }
+
       }
+
     };
 
     document.addEventListener(
@@ -123,16 +158,20 @@ export default function EntrepreneurModal({
     );
 
     return () => {
+
       document.removeEventListener(
         "keydown",
         handleKeyDown
       );
+
     };
+
   }, [
     person,
     lightbox,
     onClose,
   ]);
+
 
   // =========================================================
   // RETURN NOTHING IF NO ENTREPRENEUR
@@ -142,78 +181,102 @@ export default function EntrepreneurModal({
     return null;
   }
 
+
   // =========================================================
   // VISITOR ID
   // =========================================================
 
   const getVisitorId = () => {
+
     let visitorId =
       localStorage.getItem(
         "entrepreneur_visitor_id"
       );
 
     if (!visitorId) {
+
       if (
         typeof crypto !== "undefined" &&
         typeof crypto.randomUUID ===
           "function"
       ) {
-        visitorId = crypto.randomUUID();
-      } else {
+
         visitorId =
-          "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
-            /[xy]/g,
-            (character) => {
-              const random =
-                Math.random() * 16 | 0;
+          crypto.randomUUID();
 
-              const value =
-                character === "x"
-                  ? random
-                  : (random & 0x3) | 0x8;
+      } else {
 
-              return value.toString(16);
-            }
-          );
+        visitorId =
+          "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
+            .replace(
+              /[xy]/g,
+              (character) => {
+
+                const random =
+                  Math.random() * 16 | 0;
+
+                const value =
+                  character === "x"
+                    ? random
+                    : (random & 0x3) | 0x8;
+
+                return value.toString(16);
+
+              }
+            );
+
       }
 
       localStorage.setItem(
         "entrepreneur_visitor_id",
         visitorId
       );
+
     }
 
     return visitorId;
   };
 
+
   // =========================================================
   // SAVE LIKE STATUS
   // =========================================================
 
-  const saveLikeStatus = (isLiked) => {
-    try {
-      const storedLikes = JSON.parse(
-        localStorage.getItem(
-          "liked_entrepreneurs"
-        ) || "[]"
-      );
+  const saveLikeStatus = (
+    isLiked
+  ) => {
 
-      const id = String(person.id);
+    try {
+
+      const storedLikes =
+        JSON.parse(
+          localStorage.getItem(
+            "liked_entrepreneurs"
+          ) || "[]"
+        );
+
+      const id =
+        String(person.id);
 
       let updatedLikes;
 
       if (isLiked) {
+
         updatedLikes = [
           ...new Set([
             ...storedLikes,
             id,
           ]),
         ];
+
       } else {
+
         updatedLikes =
           storedLikes.filter(
-            (item) => item !== id
+            (item) =>
+              item !== id
           );
+
       }
 
       localStorage.setItem(
@@ -222,19 +285,27 @@ export default function EntrepreneurModal({
           updatedLikes
         )
       );
+
     } catch (error) {
+
       console.error(
         "Failed to save like status:",
         error
       );
+
     }
+
   };
+
 
   // =========================================================
   // LIKE / UNLIKE
   // =========================================================
 
-  const handleLike = async (event) => {
+  const handleLike = async (
+    event
+  ) => {
+
     event.stopPropagation();
 
     if (
@@ -245,16 +316,19 @@ export default function EntrepreneurModal({
     }
 
     try {
+
       setLiking(true);
 
       const visitorId =
         getVisitorId();
+
 
       // =====================================================
       // UNLIKE
       // =====================================================
 
       if (liked) {
+
         const response =
           await api.delete(
             `/entrepreneurs/${person.id}/like/`,
@@ -269,18 +343,24 @@ export default function EntrepreneurModal({
         const newCount =
           Number(
             response.data?.likes_count ??
-              Math.max(
-                likesCount - 1,
-                0
-              )
+            Math.max(
+              likesCount - 1,
+              0
+            )
           );
 
         setLiked(false);
-        setLikesCount(newCount);
+
+        setLikesCount(
+          newCount
+        );
+
         saveLikeStatus(false);
 
         return;
+
       }
+
 
       // =====================================================
       // LIKE
@@ -298,21 +378,32 @@ export default function EntrepreneurModal({
       const newCount =
         Number(
           response.data?.likes_count ??
-            likesCount + 1
+          likesCount + 1
         );
 
       setLiked(true);
-      setLikesCount(newCount);
+
+      setLikesCount(
+        newCount
+      );
+
       saveLikeStatus(true);
+
     } catch (error) {
+
       console.error(
         "Failed to update entrepreneur like:",
         error
       );
+
     } finally {
+
       setLiking(false);
+
     }
+
   };
+
 
   // =========================================================
   // PROFILE IMAGE
@@ -322,6 +413,7 @@ export default function EntrepreneurModal({
     person?.profile_image ||
     person?.image ||
     "/placeholder.jpg";
+
 
   // =========================================================
   // WORK GALLERY
@@ -333,6 +425,7 @@ export default function EntrepreneurModal({
       : Array.isArray(person?.gallery)
       ? person.gallery
       : [];
+
 
   // =========================================================
   // SOCIAL DATA
@@ -371,6 +464,7 @@ export default function EntrepreneurModal({
     socials?.website ||
     "";
 
+
   // =========================================================
   // WHATSAPP URL
   // =========================================================
@@ -384,11 +478,15 @@ export default function EntrepreneurModal({
       ? `https://wa.me/${whatsappNumber}`
       : "";
 
+
   // =========================================================
   // IMAGE URL HELPER
   // =========================================================
 
-  const getImageUrl = (image) => {
+  const getImageUrl = (
+    image
+  ) => {
+
     if (!image) {
       return "/placeholder.jpg";
     }
@@ -400,24 +498,35 @@ export default function EntrepreneurModal({
         image.startsWith("https://")
       )
     ) {
+
       return image;
+
     }
 
     return image;
+
   };
+
 
   // =========================================================
   // CLOSE ON BACKDROP
   // =========================================================
 
-  const handleBackdropClick = (event) => {
+  const handleBackdropClick = (
+    event
+  ) => {
+
     if (
       event.target ===
       event.currentTarget
     ) {
+
       onClose?.();
+
     }
+
   };
+
 
   // =========================================================
   // VIDEO URL
@@ -428,131 +537,249 @@ export default function EntrepreneurModal({
     person?.video_url ||
     "";
 
+
   // =========================================================
-  // VIDEO PLATFORM DETECTION
+  // VIDEO TYPE DETECTION
   // =========================================================
 
-  const getVideoInfo = (url) => {
+  const getVideoType = (
+    url
+  ) => {
+
     if (!url) {
-      return {
-        type: "none",
-        url: "",
-      };
+      return "none";
     }
 
-    const normalizedUrl =
-      String(url).trim();
+    const lowerUrl =
+      url.toLowerCase();
 
-    // =======================================================
+
+    // -------------------------------------------------------
     // TIKTOK
-    // =======================================================
+    // -------------------------------------------------------
 
     if (
-      normalizedUrl.includes(
+      lowerUrl.includes(
         "tiktok.com"
       )
     ) {
-      return {
-        type: "tiktok",
-        url: normalizedUrl,
-      };
+
+      return "tiktok";
+
     }
 
-    // =======================================================
+
+    // -------------------------------------------------------
     // YOUTUBE
-    // =======================================================
+    // -------------------------------------------------------
 
     if (
-      normalizedUrl.includes(
+      lowerUrl.includes(
         "youtube.com"
       ) ||
-      normalizedUrl.includes(
+      lowerUrl.includes(
         "youtu.be"
       )
     ) {
-      let videoId = "";
 
-      try {
-        const parsedUrl =
-          new URL(normalizedUrl);
+      return "youtube";
 
-        // youtu.be/VIDEO_ID
-        if (
-          parsedUrl.hostname.includes(
-            "youtu.be"
-          )
-        ) {
-          videoId =
-            parsedUrl.pathname
-              .replace("/", "")
-              .split("/")[0];
-        }
-
-        // youtube.com/watch?v=VIDEO_ID
-        if (
-          parsedUrl.hostname.includes(
-            "youtube.com"
-          )
-        ) {
-          videoId =
-            parsedUrl.searchParams.get(
-              "v"
-            ) || "";
-        }
-
-        // youtube.com/embed/VIDEO_ID
-        if (
-          parsedUrl.pathname.includes(
-            "/embed/"
-          )
-        ) {
-          videoId =
-            parsedUrl.pathname
-              .split("/embed/")[1]
-              ?.split("/")[0] || "";
-        }
-
-        // youtube.com/shorts/VIDEO_ID
-        if (
-          parsedUrl.pathname.includes(
-            "/shorts/"
-          )
-        ) {
-          videoId =
-            parsedUrl.pathname
-              .split("/shorts/")[1]
-              ?.split("/")[0] || "";
-        }
-      } catch (error) {
-        console.error(
-          "Failed to parse YouTube URL:",
-          error
-        );
-      }
-
-      if (videoId) {
-        return {
-          type: "youtube",
-          url: `https://www.youtube.com/embed/${videoId}`,
-        };
-      }
     }
 
-    // =======================================================
-    // OTHER EMBED URL
-    // =======================================================
 
-    return {
-      type: "iframe",
-      url: normalizedUrl,
-    };
+    // -------------------------------------------------------
+    // DIRECT VIDEO
+    // -------------------------------------------------------
+
+    if (
+      /\.(mp4|webm|ogg)(\?.*)?$/i.test(
+        lowerUrl
+      )
+    ) {
+
+      return "direct";
+
+    }
+
+
+    // -------------------------------------------------------
+    // UNKNOWN
+    // -------------------------------------------------------
+
+    return "external";
+
   };
 
-  const videoInfo =
-    getVideoInfo(videoUrl);
+
+  const videoType =
+    getVideoType(videoUrl);
+
+
+  // =========================================================
+  // YOUTUBE EMBED URL
+  // =========================================================
+
+  const getYouTubeEmbedUrl = (
+    url
+  ) => {
+
+    if (!url) {
+      return "";
+    }
+
+    try {
+
+      const parsedUrl =
+        new URL(url);
+
+
+      // youtu.be/VIDEO_ID
+
+      if (
+        parsedUrl.hostname.includes(
+          "youtu.be"
+        )
+      ) {
+
+        const videoId =
+          parsedUrl.pathname
+            .replace("/", "")
+            .trim();
+
+        return videoId
+          ? `https://www.youtube.com/embed/${videoId}`
+          : url;
+
+      }
+
+
+      // youtube.com/watch?v=VIDEO_ID
+
+      const videoId =
+        parsedUrl.searchParams.get(
+          "v"
+        );
+
+      if (videoId) {
+
+        return `https://www.youtube.com/embed/${videoId}`;
+
+      }
+
+
+      // youtube.com/shorts/VIDEO_ID
+
+      const shortsMatch =
+        parsedUrl.pathname.match(
+          /\/shorts\/([^/]+)/
+        );
+
+      if (
+        shortsMatch?.[1]
+      ) {
+
+        return `https://www.youtube.com/embed/${shortsMatch[1]}`;
+
+      }
+
+
+      // youtube.com/embed/VIDEO_ID
+
+      if (
+        parsedUrl.pathname.includes(
+          "/embed/"
+        )
+      ) {
+
+        return url;
+
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Invalid YouTube URL:",
+        error
+      );
+
+    }
+
+    return url;
+
+  };
+
+
+  // =========================================================
+  // TIKTOK EMBED URL
+  // =========================================================
+
+  const getTikTokEmbedUrl = (
+    url
+  ) => {
+
+    if (!url) {
+      return "";
+    }
+
+    try {
+
+      const parsedUrl =
+        new URL(url);
+
+      const match =
+        parsedUrl.pathname.match(
+          /\/video\/(\d+)/
+        );
+
+      if (
+        match?.[1]
+      ) {
+
+        return `https://www.tiktok.com/player/v1/${match[1]}`;
+
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Invalid TikTok URL:",
+        error
+      );
+
+    }
+
+    return "";
+
+  };
+
+
+  const youtubeEmbedUrl =
+    getYouTubeEmbedUrl(
+      videoUrl
+    );
+
+  const tiktokEmbedUrl =
+    getTikTokEmbedUrl(
+      videoUrl
+    );
+
+
+  // =========================================================
+  // VIDEO PLATFORM LABEL
+  // =========================================================
+
+  const videoPlatformLabel =
+    videoType === "tiktok"
+      ? "Watch More on TikTok"
+      : videoType === "youtube"
+      ? "Watch More on YouTube"
+      : "Open Video";
+
 
   return (
+
     <>
+
       {/* =====================================================
           MAIN MODAL OVERLAY
       ====================================================== */}
@@ -574,6 +801,7 @@ export default function EntrepreneurModal({
           handleBackdropClick
         }
       >
+
         {/* ===================================================
             MODAL CONTAINER
         ==================================================== */}
@@ -597,6 +825,7 @@ export default function EntrepreneurModal({
             event.stopPropagation()
           }
         >
+
           {/* =================================================
               CLOSE BUTTON
           ================================================== */}
@@ -629,6 +858,7 @@ export default function EntrepreneurModal({
             <FaTimes />
           </button>
 
+
           {/* =================================================
               SCROLLABLE CONTENT
           ================================================== */}
@@ -639,6 +869,7 @@ export default function EntrepreneurModal({
               overscroll-contain
             "
           >
+
             {/* =================================================
                 HERO PROFILE IMAGE
             ================================================== */}
@@ -654,12 +885,9 @@ export default function EntrepreneurModal({
                 overflow-hidden
               "
             >
-              {/* BLURRED BACKGROUND */}
 
               <img
-                src={getImageUrl(
-                  profileImage
-                )}
+                src={getImageUrl(profileImage)}
                 alt=""
                 aria-hidden="true"
                 className="
@@ -674,8 +902,6 @@ export default function EntrepreneurModal({
                 "
               />
 
-              {/* MAIN IMAGE */}
-
               <div
                 className="
                   absolute
@@ -685,10 +911,9 @@ export default function EntrepreneurModal({
                   justify-center
                 "
               >
+
                 <img
-                  src={getImageUrl(
-                    profileImage
-                  )}
+                  src={getImageUrl(profileImage)}
                   alt={
                     person?.name ||
                     "Entrepreneur"
@@ -702,9 +927,9 @@ export default function EntrepreneurModal({
                     object-center
                   "
                 />
+
               </div>
 
-              {/* BOTTOM GRADIENT */}
 
               <div
                 className="
@@ -721,9 +946,11 @@ export default function EntrepreneurModal({
                 "
               />
 
+
               {/* FEATURED BADGE */}
 
               {person?.featured && (
+
                 <div
                   className="
                     absolute
@@ -742,7 +969,9 @@ export default function EntrepreneurModal({
                 >
                   Featured Entrepreneur
                 </div>
+
               )}
+
 
               {/* LIKE BUTTON */}
 
@@ -786,6 +1015,7 @@ export default function EntrepreneurModal({
                     : "Like entrepreneur"
                 }
               >
+
                 <FaHeart
                   className={`
                     text-lg
@@ -805,8 +1035,11 @@ export default function EntrepreneurModal({
                 >
                   {likesCount}
                 </span>
+
               </button>
+
             </div>
+
 
             {/* =================================================
                 PROFILE CONTENT
@@ -819,6 +1052,7 @@ export default function EntrepreneurModal({
                 lg:p-10
               "
             >
+
               {/* =================================================
                   NAME + TITLE
               ================================================== */}
@@ -828,6 +1062,7 @@ export default function EntrepreneurModal({
                   mb-7
                 "
               >
+
                 <h2
                   className="
                     text-3xl
@@ -841,7 +1076,9 @@ export default function EntrepreneurModal({
                     "Unnamed Entrepreneur"}
                 </h2>
 
+
                 {person?.title && (
+
                   <p
                     className="
                       mt-2
@@ -853,9 +1090,12 @@ export default function EntrepreneurModal({
                   >
                     {person.title}
                   </p>
+
                 )}
 
+
                 {person?.location && (
+
                   <div
                     className="
                       flex
@@ -866,25 +1106,32 @@ export default function EntrepreneurModal({
                       text-sm
                     "
                   >
+
                     <FaMapMarkerAlt />
 
                     <span>
                       {person.location}
                     </span>
+
                   </div>
+
                 )}
+
               </div>
+
 
               {/* =================================================
                   ABOUT
               ================================================== */}
 
               {person?.description && (
+
                 <section
                   className="
                     mb-9
                   "
                 >
+
                   <h3
                     className="
                       text-xl
@@ -897,6 +1144,7 @@ export default function EntrepreneurModal({
                     About
                   </h3>
 
+
                   <p
                     className="
                       text-slate-600
@@ -906,19 +1154,24 @@ export default function EntrepreneurModal({
                   >
                     {person.description}
                   </p>
+
                 </section>
+
               )}
+
 
               {/* =================================================
                   WORK GALLERY
               ================================================== */}
 
               {works.length > 0 && (
+
                 <section
                   className="
                     mb-9
                   "
                 >
+
                   <div
                     className="
                       flex
@@ -927,6 +1180,7 @@ export default function EntrepreneurModal({
                       mb-4
                     "
                   >
+
                     <h3
                       className="
                         text-xl
@@ -938,18 +1192,22 @@ export default function EntrepreneurModal({
                       Their Work
                     </h3>
 
+
                     <span
                       className="
                         text-sm
                         text-slate-400
                       "
                     >
-                      {works.length}{" "}
+                      {works.length}
+                      {" "}
                       {works.length === 1
                         ? "project"
                         : "projects"}
                     </span>
+
                   </div>
+
 
                   <div
                     className="
@@ -959,6 +1217,7 @@ export default function EntrepreneurModal({
                       gap-4
                     "
                   >
+
                     {works
                       .slice(0, 3)
                       .map(
@@ -966,6 +1225,7 @@ export default function EntrepreneurModal({
                           work,
                           index
                         ) => {
+
                           const image =
                             typeof work ===
                             "string"
@@ -983,6 +1243,7 @@ export default function EntrepreneurModal({
                             );
 
                           return (
+
                             <button
                               key={
                                 work?.id ||
@@ -1007,13 +1268,19 @@ export default function EntrepreneurModal({
                                 duration-300
                               "
                             >
+
                               <img
                                 src={
                                   imageUrl
                                 }
-                                alt={`${person.name} work ${
-                                  index + 1
-                                }`}
+                                alt={`
+                                  ${
+                                    person.name
+                                  }
+                                  work ${
+                                    index + 1
+                                  }
+                                `}
                                 className="
                                   w-full
                                   h-full
@@ -1053,42 +1320,86 @@ export default function EntrepreneurModal({
                               >
                                 View
                               </div>
+
                             </button>
+
                           );
+
                         }
                       )}
+
                   </div>
+
                 </section>
+
               )}
+
 
               {/* =================================================
                   VIDEO
               ================================================== */}
 
               {videoUrl && (
+
                 <section
                   className="
                     mb-9
                   "
                 >
-                  <h3
+
+                  <div
                     className="
-                      text-xl
-                      sm:text-2xl
-                      font-bold
-                      text-slate-900
+                      flex
+                      items-center
+                      justify-between
                       mb-4
+                      gap-4
                     "
                   >
-                    Featured Video
-                  </h3>
+
+                    <h3
+                      className="
+                        text-xl
+                        sm:text-2xl
+                        font-bold
+                        text-slate-900
+                      "
+                    >
+                      Featured Video
+                    </h3>
+
+                    {/* EXTERNAL VIDEO LINK */}
+
+                    <a
+                      href={videoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="
+                        inline-flex
+                        items-center
+                        gap-2
+                        text-sm
+                        font-semibold
+                        text-blue-600
+                        hover:text-blue-800
+                        transition
+                      "
+                    >
+                      {videoPlatformLabel}
+                      <FaExternalLinkAlt
+                        className="text-xs"
+                      />
+                    </a>
+
+                  </div>
+
 
                   {/* =================================================
                       YOUTUBE
                   ================================================== */}
 
-                  {videoInfo.type ===
-                    "youtube" && (
+                  {videoType === "youtube" && (
+
                     <div
                       className="
                         relative
@@ -1100,15 +1411,16 @@ export default function EntrepreneurModal({
                         shadow-lg
                       "
                     >
+
                       <iframe
                         className="
                           w-full
                           h-full
                         "
-                        src={
-                          videoInfo.url
+                        src={youtubeEmbedUrl}
+                        title={
+                          `${person.name} YouTube video`
                         }
-                        title={`${person.name} YouTube video`}
                         allow="
                           accelerometer;
                           autoplay;
@@ -1120,15 +1432,172 @@ export default function EntrepreneurModal({
                         "
                         allowFullScreen
                       />
+
                     </div>
+
                   )}
+
 
                   {/* =================================================
                       TIKTOK
                   ================================================== */}
 
-                  {videoInfo.type ===
-                    "tiktok" && (
+                  {videoType === "tiktok" && (
+
+                    <div
+                      className="
+                        relative
+                        w-full
+                        aspect-video
+                        rounded-2xl
+                        overflow-hidden
+                        bg-black
+                        shadow-lg
+                      "
+                    >
+
+                      {tiktokEmbedUrl ? (
+
+                        <iframe
+                          className="
+                            w-full
+                            h-full
+                          "
+                          src={tiktokEmbedUrl}
+                          title={
+                            `${person.name} TikTok video`
+                          }
+                          allow="
+                            autoplay;
+                            encrypted-media;
+                            fullscreen;
+                            picture-in-picture
+                          "
+                          allowFullScreen
+                        />
+
+                      ) : (
+
+                        <div
+                          className="
+                            absolute
+                            inset-0
+                            flex
+                            flex-col
+                            items-center
+                            justify-center
+                            text-white
+                            text-center
+                            p-6
+                          "
+                        >
+
+                          <FaTiktok
+                            className="
+                              text-5xl
+                              mb-4
+                            "
+                          />
+
+                          <p
+                            className="
+                              text-lg
+                              font-semibold
+                              mb-2
+                            "
+                          >
+                            View this TikTok video
+                          </p>
+
+                          <p
+                            className="
+                              text-sm
+                              text-slate-300
+                              mb-5
+                            "
+                          >
+                            Open the original video
+                            on TikTok.
+                          </p>
+
+                          <a
+                            href={videoUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="
+                              inline-flex
+                              items-center
+                              gap-2
+                              bg-white
+                              text-black
+                              px-5
+                              py-3
+                              rounded-xl
+                              font-semibold
+                              hover:bg-slate-200
+                              transition
+                            "
+                          >
+                            <FaPlay />
+                            Watch on TikTok
+                          </a>
+
+                        </div>
+
+                      )}
+
+                    </div>
+
+                  )}
+
+
+                  {/* =================================================
+                      DIRECT MP4 / WEBM / OGG
+                  ================================================== */}
+
+                  {videoType === "direct" && (
+
+                    <div
+                      className="
+                        relative
+                        w-full
+                        aspect-video
+                        rounded-2xl
+                        overflow-hidden
+                        bg-black
+                        shadow-lg
+                      "
+                    >
+
+                      <video
+                        className="
+                          w-full
+                          h-full
+                          object-contain
+                        "
+                        controls
+                        playsInline
+                        preload="metadata"
+                      >
+                        <source
+                          src={videoUrl}
+                        />
+
+                        Your browser does not
+                        support video playback.
+                      </video>
+
+                    </div>
+
+                  )}
+
+
+                  {/* =================================================
+                      UNKNOWN / EXTERNAL VIDEO
+                  ================================================== */}
+
+                  {videoType === "external" && (
+
                     <div
                       className="
                         relative
@@ -1137,61 +1606,56 @@ export default function EntrepreneurModal({
                         rounded-2xl
                         overflow-hidden
                         bg-gradient-to-br
-                        from-slate-950
-                        via-slate-900
-                        to-black
+                        from-slate-900
+                        to-slate-700
                         shadow-lg
                         flex
                         items-center
                         justify-center
+                        text-white
                         p-6
                       "
                     >
+
                       <div
                         className="
                           text-center
-                          text-white
                         "
                       >
-                        <FaTiktok
+
+                        <FaPlay
                           className="
-                            text-5xl
                             mx-auto
-                            mb-4
+                            text-5xl
+                            mb-5
                           "
                         />
 
-                        <h4
+                        <p
                           className="
                             text-xl
                             font-bold
                             mb-2
                           "
                         >
-                          Watch on TikTok
-                        </h4>
+                          Featured Video
+                        </p>
 
                         <p
                           className="
                             text-sm
                             text-slate-300
-                            mb-6
+                            mb-5
                           "
                         >
-                          View {person.name}'s
-                          featured video on
-                          TikTok.
+                          This video is hosted
+                          externally.
                         </p>
 
                         <a
-                          href={
-                            videoInfo.url
-                          }
+                          href={videoUrl}
                           target="_blank"
-                          rel="
-                            noreferrer
-                            noopener
-                          "
+                          rel="noopener noreferrer"
                           className="
                             inline-flex
                             items-center
@@ -1201,64 +1665,25 @@ export default function EntrepreneurModal({
                             px-5
                             py-3
                             rounded-xl
-                            font-bold
+                            font-semibold
                             hover:bg-slate-200
                             transition
                           "
                         >
-                          Watch on TikTok
-
-                          <FaExternalLinkAlt
-                            className="
-                              text-sm
-                            "
-                          />
+                          <FaExternalLinkAlt />
+                          Watch Video
                         </a>
+
                       </div>
+
                     </div>
+
                   )}
 
-                  {/* =================================================
-                      OTHER EMBED-COMPATIBLE VIDEO
-                  ================================================== */}
-
-                  {videoInfo.type ===
-                    "iframe" && (
-                    <div
-                      className="
-                        relative
-                        w-full
-                        aspect-video
-                        rounded-2xl
-                        overflow-hidden
-                        bg-black
-                        shadow-lg
-                      "
-                    >
-                      <iframe
-                        className="
-                          w-full
-                          h-full
-                        "
-                        src={
-                          videoInfo.url
-                        }
-                        title={`${person.name} video`}
-                        allow="
-                          accelerometer;
-                          autoplay;
-                          clipboard-write;
-                          encrypted-media;
-                          gyroscope;
-                          picture-in-picture;
-                          web-share
-                        "
-                        allowFullScreen
-                      />
-                    </div>
-                  )}
                 </section>
+
               )}
+
 
               {/* =================================================
                   SOCIAL / CONTACT
@@ -1270,6 +1695,7 @@ export default function EntrepreneurModal({
                 tiktok ||
                 youtube ||
                 website) && (
+
                 <section
                   className="
                     border-t
@@ -1277,6 +1703,7 @@ export default function EntrepreneurModal({
                     pt-7
                   "
                 >
+
                   <h3
                     className="
                       text-xl
@@ -1290,9 +1717,11 @@ export default function EntrepreneurModal({
                     {person.name}
                   </h3>
 
+
                   {/* WHATSAPP */}
 
                   {whatsappUrl && (
+
                     <a
                       href={
                         whatsappUrl
@@ -1322,6 +1751,7 @@ export default function EntrepreneurModal({
                         mb-5
                       "
                     >
+
                       <FaWhatsapp
                         className="
                           text-xl
@@ -1330,8 +1760,11 @@ export default function EntrepreneurModal({
 
                       Contact Business
                       on WhatsApp
+
                     </a>
+
                   )}
+
 
                   {/* SOCIAL ICONS */}
 
@@ -1342,11 +1775,11 @@ export default function EntrepreneurModal({
                       gap-3
                     "
                   >
+
                     {instagram && (
+
                       <a
-                        href={
-                          instagram
-                        }
+                        href={instagram}
                         target="_blank"
                         rel="
                           noreferrer
@@ -1371,13 +1804,14 @@ export default function EntrepreneurModal({
                       >
                         <FaInstagram />
                       </a>
+
                     )}
 
+
                     {facebook && (
+
                       <a
-                        href={
-                          facebook
-                        }
+                        href={facebook}
                         target="_blank"
                         rel="
                           noreferrer
@@ -1402,13 +1836,14 @@ export default function EntrepreneurModal({
                       >
                         <FaFacebook />
                       </a>
+
                     )}
 
+
                     {tiktok && (
+
                       <a
-                        href={
-                          tiktok
-                        }
+                        href={tiktok}
                         target="_blank"
                         rel="
                           noreferrer
@@ -1433,13 +1868,14 @@ export default function EntrepreneurModal({
                       >
                         <FaTiktok />
                       </a>
+
                     )}
 
+
                     {youtube && (
+
                       <a
-                        href={
-                          youtube
-                        }
+                        href={youtube}
                         target="_blank"
                         rel="
                           noreferrer
@@ -1464,13 +1900,14 @@ export default function EntrepreneurModal({
                       >
                         <FaYoutube />
                       </a>
+
                     )}
 
+
                     {website && (
+
                       <a
-                        href={
-                          website
-                        }
+                        href={website}
                         target="_blank"
                         rel="
                           noreferrer
@@ -1495,20 +1932,30 @@ export default function EntrepreneurModal({
                       >
                         <FaGlobe />
                       </a>
+
                     )}
+
                   </div>
+
                 </section>
+
               )}
+
             </div>
+
           </div>
+
         </div>
+
       </div>
+
 
       {/* =====================================================
           IMAGE LIGHTBOX
       ====================================================== */}
 
       {lightbox && (
+
         <div
           className="
             fixed
@@ -1525,6 +1972,7 @@ export default function EntrepreneurModal({
             setLightbox(null)
           }
         >
+
           <button
             type="button"
             onClick={() =>
@@ -1551,6 +1999,7 @@ export default function EntrepreneurModal({
             <FaTimes />
           </button>
 
+
           <img
             src={lightbox}
             alt="Enlarged entrepreneur work"
@@ -1565,8 +2014,13 @@ export default function EntrepreneurModal({
               shadow-2xl
             "
           />
+
         </div>
+
       )}
+
     </>
+
   );
 }
+
