@@ -1,4 +1,3 @@
-
 import React, {
   useEffect,
   useState,
@@ -20,136 +19,87 @@ import {
 
 import api from "../services/api";
 
-
 export default function EntrepreneurModal({
   person,
   onClose,
 }) {
+  const [lightbox, setLightbox] = useState(null);
+  const [liked, setLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(
+    Number(person?.likes_count || 0)
+  );
+  const [liking, setLiking] = useState(false);
 
-  // =========================================================
-  // STATES
-  // =========================================================
-
-  const [lightbox, setLightbox] =
-    useState(null);
-
-  const [liked, setLiked] =
-    useState(false);
-
-  const [likesCount, setLikesCount] =
-    useState(
-      Number(person?.likes_count || 0)
-    );
-
-  const [liking, setLiking] =
-    useState(false);
-
-
-  // =========================================================
-  // UPDATE LIKE COUNT
-  // =========================================================
+  /* =========================================================
+     UPDATE LIKE COUNT
+  ========================================================= */
 
   useEffect(() => {
-
     setLikesCount(
       Number(person?.likes_count || 0)
     );
+  }, [person?.id, person?.likes_count]);
 
-  }, [
-    person?.id,
-    person?.likes_count,
-  ]);
-
-
-  // =========================================================
-  // CHECK LOCAL LIKE STATUS
-  // =========================================================
+  /* =========================================================
+     CHECK LOCAL LIKE STATUS
+  ========================================================= */
 
   useEffect(() => {
-
-    if (!person?.id) {
-      return;
-    }
+    if (!person?.id) return;
 
     try {
-
-      const storedLikes =
-        JSON.parse(
-          localStorage.getItem(
-            "liked_entrepreneurs"
-          ) || "[]"
-        );
+      const storedLikes = JSON.parse(
+        localStorage.getItem(
+          "liked_entrepreneurs"
+        ) || "[]"
+      );
 
       setLiked(
         storedLikes.includes(
           String(person.id)
         )
       );
-
     } catch (error) {
-
       console.error(
         "Failed to read like status:",
         error
       );
-
     }
-
   }, [person?.id]);
 
-
-  // =========================================================
-  // PREVENT BODY SCROLL
-  // =========================================================
+  /* =========================================================
+     PREVENT BODY SCROLL
+  ========================================================= */
 
   useEffect(() => {
-
-    if (!person) {
-      return;
-    }
+    if (!person) return;
 
     const originalOverflow =
       document.body.style.overflow;
 
-    document.body.style.overflow =
-      "hidden";
+    document.body.style.overflow = "hidden";
 
     return () => {
-
       document.body.style.overflow =
         originalOverflow;
-
     };
-
   }, [person]);
 
-
-  // =========================================================
-  // ESCAPE KEY
-  // =========================================================
+  /* =========================================================
+     ESCAPE KEY
+  ========================================================= */
 
   useEffect(() => {
-
-    if (!person) {
-      return;
-    }
+    if (!person) return;
 
     const handleKeyDown = (event) => {
-
       if (event.key === "Escape") {
-
         if (lightbox) {
-
           setLightbox(null);
-
         } else {
-
           onClose?.();
-
         }
-
       }
-
     };
 
     document.addEventListener(
@@ -158,266 +108,174 @@ export default function EntrepreneurModal({
     );
 
     return () => {
-
       document.removeEventListener(
         "keydown",
         handleKeyDown
       );
-
     };
-
-  }, [
-    person,
-    lightbox,
-    onClose,
-  ]);
-
-
-  // =========================================================
-  // RETURN NOTHING IF NO ENTREPRENEUR
-  // =========================================================
+  }, [person, lightbox, onClose]);
 
   if (!person) {
     return null;
   }
 
-
-  // =========================================================
-  // VISITOR ID
-  // =========================================================
+  /* =========================================================
+     VISITOR ID
+  ========================================================= */
 
   const getVisitorId = () => {
-
     let visitorId =
       localStorage.getItem(
         "entrepreneur_visitor_id"
       );
 
     if (!visitorId) {
-
       if (
         typeof crypto !== "undefined" &&
-        typeof crypto.randomUUID ===
-          "function"
+        typeof crypto.randomUUID === "function"
       ) {
-
-        visitorId =
-          crypto.randomUUID();
-
+        visitorId = crypto.randomUUID();
       } else {
-
         visitorId =
-          "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
-            .replace(
-              /[xy]/g,
-              (character) => {
+          "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+            /[xy]/g,
+            (character) => {
+              const random =
+                (Math.random() * 16) | 0;
 
-                const random =
-                  Math.random() * 16 | 0;
+              const value =
+                character === "x"
+                  ? random
+                  : (random & 0x3) | 0x8;
 
-                const value =
-                  character === "x"
-                    ? random
-                    : (random & 0x3) | 0x8;
-
-                return value.toString(16);
-
-              }
-            );
-
+              return value.toString(16);
+            }
+          );
       }
 
       localStorage.setItem(
         "entrepreneur_visitor_id",
         visitorId
       );
-
     }
 
     return visitorId;
   };
 
+  /* =========================================================
+     SAVE LIKE STATUS
+  ========================================================= */
 
-  // =========================================================
-  // SAVE LIKE STATUS
-  // =========================================================
-
-  const saveLikeStatus = (
-    isLiked
-  ) => {
-
+  const saveLikeStatus = (isLiked) => {
     try {
+      const storedLikes = JSON.parse(
+        localStorage.getItem(
+          "liked_entrepreneurs"
+        ) || "[]"
+      );
 
-      const storedLikes =
-        JSON.parse(
-          localStorage.getItem(
-            "liked_entrepreneurs"
-          ) || "[]"
-        );
+      const id = String(person.id);
 
-      const id =
-        String(person.id);
-
-      let updatedLikes;
-
-      if (isLiked) {
-
-        updatedLikes = [
-          ...new Set([
-            ...storedLikes,
-            id,
-          ]),
-        ];
-
-      } else {
-
-        updatedLikes =
-          storedLikes.filter(
-            (item) =>
-              item !== id
+      const updatedLikes = isLiked
+        ? [
+            ...new Set([
+              ...storedLikes,
+              id,
+            ]),
+          ]
+        : storedLikes.filter(
+            (item) => item !== id
           );
-
-      }
 
       localStorage.setItem(
         "liked_entrepreneurs",
-        JSON.stringify(
-          updatedLikes
-        )
+        JSON.stringify(updatedLikes)
       );
-
     } catch (error) {
-
       console.error(
         "Failed to save like status:",
         error
       );
-
     }
-
   };
 
+  /* =========================================================
+     LIKE / UNLIKE
+  ========================================================= */
 
-  // =========================================================
-  // LIKE / UNLIKE
-  // =========================================================
-
-  const handleLike = async (
-    event
-  ) => {
-
+  const handleLike = async (event) => {
     event.stopPropagation();
 
-    if (
-      !person?.id ||
-      liking
-    ) {
-      return;
-    }
+    if (!person?.id || liking) return;
 
     try {
-
       setLiking(true);
 
-      const visitorId =
-        getVisitorId();
-
-
-      // =====================================================
-      // UNLIKE
-      // =====================================================
+      const visitorId = getVisitorId();
 
       if (liked) {
-
-        const response =
-          await api.delete(
-            `/entrepreneurs/${person.id}/like/`,
-            {
-              params: {
-                visitor_id:
-                  visitorId,
-              },
-            }
-          );
-
-        const newCount =
-          Number(
-            response.data?.likes_count ??
-            Math.max(
-              likesCount - 1,
-              0
-            )
-          );
+        const response = await api.delete(
+          `/entrepreneurs/${person.id}/like/`,
+          {
+            params: {
+              visitor_id: visitorId,
+            },
+          }
+        );
 
         setLiked(false);
 
         setLikesCount(
-          newCount
+          Number(
+            response.data?.likes_count ??
+              Math.max(likesCount - 1, 0)
+          )
         );
 
         saveLikeStatus(false);
 
         return;
-
       }
 
-
-      // =====================================================
-      // LIKE
-      // =====================================================
-
-      const response =
-        await api.post(
-          `/entrepreneurs/${person.id}/like/`,
-          {
-            visitor_id:
-              visitorId,
-          }
-        );
-
-      const newCount =
-        Number(
-          response.data?.likes_count ??
-          likesCount + 1
-        );
+      const response = await api.post(
+        `/entrepreneurs/${person.id}/like/`,
+        {
+          visitor_id: visitorId,
+        }
+      );
 
       setLiked(true);
 
       setLikesCount(
-        newCount
+        Number(
+          response.data?.likes_count ??
+            likesCount + 1
+        )
       );
 
       saveLikeStatus(true);
-
     } catch (error) {
-
       console.error(
         "Failed to update entrepreneur like:",
         error
       );
-
     } finally {
-
       setLiking(false);
-
     }
-
   };
 
-
-  // =========================================================
-  // PROFILE IMAGE
-  // =========================================================
+  /* =========================================================
+     PROFILE IMAGE
+  ========================================================= */
 
   const profileImage =
     person?.profile_image ||
     person?.image ||
     "/placeholder.jpg";
 
-
-  // =========================================================
-  // WORK GALLERY
-  // =========================================================
+  /* =========================================================
+     WORK GALLERY
+  ========================================================= */
 
   const works =
     Array.isArray(person?.works)
@@ -426,13 +284,11 @@ export default function EntrepreneurModal({
       ? person.gallery
       : [];
 
+  /* =========================================================
+     SOCIAL DATA
+  ========================================================= */
 
-  // =========================================================
-  // SOCIAL DATA
-  // =========================================================
-
-  const socials =
-    person?.socials || {};
+  const socials = person?.socials || {};
 
   const whatsapp =
     person?.whatsapp ||
@@ -464,29 +320,23 @@ export default function EntrepreneurModal({
     socials?.website ||
     "";
 
+  /* =========================================================
+     WHATSAPP
+  ========================================================= */
 
-  // =========================================================
-  // WHATSAPP URL
-  // =========================================================
+  const whatsappNumber = String(
+    whatsapp
+  ).replace(/[^0-9]/g, "");
 
-  const whatsappNumber =
-    String(whatsapp)
-      .replace(/[^0-9]/g, "");
+  const whatsappUrl = whatsappNumber
+    ? `https://wa.me/${whatsappNumber}`
+    : "";
 
-  const whatsappUrl =
-    whatsappNumber
-      ? `https://wa.me/${whatsappNumber}`
-      : "";
+  /* =========================================================
+     IMAGE URL
+  ========================================================= */
 
-
-  // =========================================================
-  // IMAGE URL HELPER
-  // =========================================================
-
-  const getImageUrl = (
-    image
-  ) => {
-
+  const getImageUrl = (image) => {
     if (!image) {
       return "/placeholder.jpg";
     }
@@ -498,290 +348,221 @@ export default function EntrepreneurModal({
         image.startsWith("https://")
       )
     ) {
-
       return image;
-
     }
 
     return image;
-
   };
 
+  /* =========================================================
+     BACKDROP
+  ========================================================= */
 
-  // =========================================================
-  // CLOSE ON BACKDROP
-  // =========================================================
-
-  const handleBackdropClick = (
-    event
-  ) => {
-
+  const handleBackdropClick = (event) => {
     if (
       event.target ===
       event.currentTarget
     ) {
-
       onClose?.();
-
     }
-
   };
 
+  /* =========================================================
+     VIDEO URL
+  ========================================================= */
 
-  // =========================================================
-  // VIDEO URL
-  // =========================================================
-
-  const videoUrl =
+  const videoUrl = String(
     person?.video ||
-    person?.video_url ||
-    "";
+      person?.video_url ||
+      ""
+  ).trim();
 
+  /* =========================================================
+     VIDEO TYPE DETECTION
+  ========================================================= */
 
-  // =========================================================
-  // VIDEO TYPE DETECTION
-  // =========================================================
+  const getVideoType = (url) => {
+    if (!url) return "none";
 
-  const getVideoType = (
-    url
-  ) => {
+    const lowerUrl = url.toLowerCase();
 
-    if (!url) {
-      return "none";
-    }
-
-    const lowerUrl =
-      url.toLowerCase();
-
-
-    // -------------------------------------------------------
-    // TIKTOK
-    // -------------------------------------------------------
+    /*
+     * DIRECT VIDEO
+     * Check this first because Cloudinary URLs
+     * can contain query parameters.
+     */
 
     if (
-      lowerUrl.includes(
-        "tiktok.com"
-      )
-    ) {
-
-      return "tiktok";
-
-    }
-
-
-    // -------------------------------------------------------
-    // YOUTUBE
-    // -------------------------------------------------------
-
-    if (
-      lowerUrl.includes(
-        "youtube.com"
-      ) ||
-      lowerUrl.includes(
-        "youtu.be"
-      )
-    ) {
-
-      return "youtube";
-
-    }
-
-
-    // -------------------------------------------------------
-    // DIRECT VIDEO
-    // -------------------------------------------------------
-
-    if (
-      /\.(mp4|webm|ogg)(\?.*)?$/i.test(
+      /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(
         lowerUrl
       )
     ) {
-
       return "direct";
-
     }
 
+    /*
+     * YOUTUBE
+     */
 
-    // -------------------------------------------------------
-    // UNKNOWN
-    // -------------------------------------------------------
+    if (
+      lowerUrl.includes("youtube.com") ||
+      lowerUrl.includes("youtu.be")
+    ) {
+      return "youtube";
+    }
+
+    /*
+     * TIKTOK
+     */
+
+    if (
+      lowerUrl.includes("tiktok.com")
+    ) {
+      return "tiktok";
+    }
 
     return "external";
-
   };
-
 
   const videoType =
     getVideoType(videoUrl);
 
+  /* =========================================================
+     YOUTUBE VIDEO ID
+  ========================================================= */
 
-  // =========================================================
-  // YOUTUBE EMBED URL
-  // =========================================================
-
-  const getYouTubeEmbedUrl = (
-    url
-  ) => {
-
-    if (!url) {
-      return "";
-    }
+  const getYouTubeVideoId = (url) => {
+    if (!url) return "";
 
     try {
+      const parsedUrl = new URL(url);
 
-      const parsedUrl =
-        new URL(url);
+      /*
+       * youtube.com/watch?v=VIDEO_ID
+       */
 
+      const watchId =
+        parsedUrl.searchParams.get("v");
 
-      // youtu.be/VIDEO_ID
+      if (watchId) {
+        return watchId;
+      }
+
+      /*
+       * youtu.be/VIDEO_ID
+       */
 
       if (
         parsedUrl.hostname.includes(
           "youtu.be"
         )
       ) {
-
-        const videoId =
-          parsedUrl.pathname
-            .replace("/", "")
-            .trim();
-
-        return videoId
-          ? `https://www.youtube.com/embed/${videoId}`
-          : url;
-
+        return parsedUrl.pathname
+          .replace("/", "")
+          .split("/")[0];
       }
 
-
-      // youtube.com/watch?v=VIDEO_ID
-
-      const videoId =
-        parsedUrl.searchParams.get(
-          "v"
-        );
-
-      if (videoId) {
-
-        return `https://www.youtube.com/embed/${videoId}`;
-
-      }
-
-
-      // youtube.com/shorts/VIDEO_ID
+      /*
+       * youtube.com/shorts/VIDEO_ID
+       */
 
       const shortsMatch =
         parsedUrl.pathname.match(
-          /\/shorts\/([^/]+)/
+          /\/shorts\/([^/?]+)/
         );
 
-      if (
-        shortsMatch?.[1]
-      ) {
-
-        return `https://www.youtube.com/embed/${shortsMatch[1]}`;
-
+      if (shortsMatch?.[1]) {
+        return shortsMatch[1];
       }
 
+      /*
+       * youtube.com/embed/VIDEO_ID
+       */
 
-      // youtube.com/embed/VIDEO_ID
+      const embedMatch =
+        parsedUrl.pathname.match(
+          /\/embed\/([^/?]+)/
+        );
 
-      if (
-        parsedUrl.pathname.includes(
-          "/embed/"
-        )
-      ) {
-
-        return url;
-
+      if (embedMatch?.[1]) {
+        return embedMatch[1];
       }
-
     } catch (error) {
-
       console.error(
         "Invalid YouTube URL:",
         error
       );
-
     }
 
-    return url;
-
+    return "";
   };
 
+  const youtubeVideoId =
+    getYouTubeVideoId(videoUrl);
 
-  // =========================================================
-  // TIKTOK EMBED URL
-  // =========================================================
+  const youtubeEmbedUrl =
+    youtubeVideoId
+      ? `https://www.youtube-nocookie.com/embed/${youtubeVideoId}?rel=0`
+      : "";
 
-  const getTikTokEmbedUrl = (
-    url
-  ) => {
+  /* =========================================================
+     TIKTOK VIDEO ID
+  ========================================================= */
 
-    if (!url) {
-      return "";
-    }
+  const getTikTokVideoId = (url) => {
+    if (!url) return "";
 
     try {
+      const parsedUrl = new URL(url);
 
-      const parsedUrl =
-        new URL(url);
+      /*
+       * Standard:
+       * /@username/video/123456789
+       */
 
       const match =
         parsedUrl.pathname.match(
           /\/video\/(\d+)/
         );
 
-      if (
-        match?.[1]
-      ) {
-
-        return `https://www.tiktok.com/player/v1/${match[1]}`;
-
+      if (match?.[1]) {
+        return match[1];
       }
-
     } catch (error) {
-
       console.error(
         "Invalid TikTok URL:",
         error
       );
-
     }
 
     return "";
-
   };
 
-
-  const youtubeEmbedUrl =
-    getYouTubeEmbedUrl(
-      videoUrl
-    );
+  const tiktokVideoId =
+    getTikTokVideoId(videoUrl);
 
   const tiktokEmbedUrl =
-    getTikTokEmbedUrl(
-      videoUrl
-    );
+    tiktokVideoId
+      ? `https://www.tiktok.com/player/v1/${tiktokVideoId}?description=1&music_info=1`
+      : "";
 
-
-  // =========================================================
-  // VIDEO PLATFORM LABEL
-  // =========================================================
+  /* =========================================================
+     VIDEO LABEL
+  ========================================================= */
 
   const videoPlatformLabel =
     videoType === "tiktok"
       ? "Watch More on TikTok"
       : videoType === "youtube"
       ? "Watch More on YouTube"
-      : "Open Video";
-
+      : videoType === "direct"
+      ? "Open Video"
+      : "Watch Video";
 
   return (
-
     <>
-
       {/* =====================================================
-          MAIN MODAL OVERLAY
+          MAIN MODAL
       ====================================================== */}
 
       <div
@@ -797,15 +578,8 @@ export default function EntrepreneurModal({
           p-3
           sm:p-6
         "
-        onMouseDown={
-          handleBackdropClick
-        }
+        onMouseDown={handleBackdropClick}
       >
-
-        {/* ===================================================
-            MODAL CONTAINER
-        ==================================================== */}
-
         <div
           className="
             relative
@@ -819,16 +593,12 @@ export default function EntrepreneurModal({
             overflow-hidden
             flex
             flex-col
-            animate-[fadeIn_.2s_ease-out]
           "
           onMouseDown={(event) =>
             event.stopPropagation()
           }
         >
-
-          {/* =================================================
-              CLOSE BUTTON
-          ================================================== */}
+          {/* CLOSE */}
 
           <button
             type="button"
@@ -848,30 +618,21 @@ export default function EntrepreneurModal({
               items-center
               justify-center
               shadow-lg
-              backdrop-blur-sm
-              transition-all
-              duration-200
-              hover:scale-105
+              transition
             "
             aria-label="Close entrepreneur profile"
           >
             <FaTimes />
           </button>
 
-
           {/* =================================================
               SCROLLABLE CONTENT
           ================================================== */}
 
-          <div
-            className="
-              overflow-y-auto
-              overscroll-contain
-            "
-          >
+          <div className="overflow-y-auto overscroll-contain">
 
             {/* =================================================
-                HERO PROFILE IMAGE
+                HERO
             ================================================== */}
 
             <div
@@ -885,7 +646,6 @@ export default function EntrepreneurModal({
                 overflow-hidden
               "
             >
-
               <img
                 src={getImageUrl(profileImage)}
                 alt=""
@@ -902,16 +662,7 @@ export default function EntrepreneurModal({
                 "
               />
 
-              <div
-                className="
-                  absolute
-                  inset-0
-                  flex
-                  items-center
-                  justify-center
-                "
-              >
-
+              <div className="absolute inset-0 flex items-center justify-center">
                 <img
                   src={getImageUrl(profileImage)}
                   alt={
@@ -927,9 +678,7 @@ export default function EntrepreneurModal({
                     object-center
                   "
                 />
-
               </div>
-
 
               <div
                 className="
@@ -946,11 +695,9 @@ export default function EntrepreneurModal({
                 "
               />
 
-
-              {/* FEATURED BADGE */}
+              {/* FEATURED */}
 
               {person?.featured && (
-
                 <div
                   className="
                     absolute
@@ -959,27 +706,23 @@ export default function EntrepreneurModal({
                     z-30
                     bg-amber-400
                     text-slate-900
-                    px-4
-                    py-2
+                    px-3
+                    py-1.5
                     rounded-full
-                    text-sm
+                    text-xs
                     font-bold
                     shadow-lg
                   "
                 >
                   Featured Entrepreneur
                 </div>
-
               )}
 
-
-              {/* LIKE BUTTON */}
+              {/* LIKE */}
 
               <button
                 type="button"
-                onClick={
-                  handleLike
-                }
+                onClick={handleLike}
                 disabled={liking}
                 className={`
                   absolute
@@ -993,56 +736,26 @@ export default function EntrepreneurModal({
                   py-2.5
                   rounded-full
                   bg-white/95
-                  backdrop-blur-sm
                   shadow-xl
-                  transition-all
-                  duration-200
+                  transition
                   hover:scale-105
                   ${
                     liked
                       ? "text-red-500"
                       : "text-slate-600"
                   }
-                  ${
-                    liking
-                      ? "opacity-60 cursor-wait"
-                      : ""
-                  }
                 `}
-                aria-label={
-                  liked
-                    ? "Unlike entrepreneur"
-                    : "Like entrepreneur"
-                }
               >
+                <FaHeart className="text-lg" />
 
-                <FaHeart
-                  className={`
-                    text-lg
-                    ${
-                      liked
-                        ? "scale-110"
-                        : ""
-                    }
-                  `}
-                />
-
-                <span
-                  className="
-                    text-sm
-                    font-bold
-                  "
-                >
+                <span className="text-sm font-bold">
                   {likesCount}
                 </span>
-
               </button>
-
             </div>
 
-
             {/* =================================================
-                PROFILE CONTENT
+                CONTENT
             ================================================== */}
 
             <div
@@ -1052,17 +765,9 @@ export default function EntrepreneurModal({
                 lg:p-10
               "
             >
+              {/* NAME */}
 
-              {/* =================================================
-                  NAME + TITLE
-              ================================================== */}
-
-              <div
-                className="
-                  mb-7
-                "
-              >
-
+              <div className="mb-7">
                 <h2
                   className="
                     text-3xl
@@ -1076,9 +781,7 @@ export default function EntrepreneurModal({
                     "Unnamed Entrepreneur"}
                 </h2>
 
-
                 {person?.title && (
-
                   <p
                     className="
                       mt-2
@@ -1090,12 +793,9 @@ export default function EntrepreneurModal({
                   >
                     {person.title}
                   </p>
-
                 )}
 
-
                 {person?.location && (
-
                   <div
                     className="
                       flex
@@ -1106,32 +806,19 @@ export default function EntrepreneurModal({
                       text-sm
                     "
                   >
-
                     <FaMapMarkerAlt />
 
                     <span>
                       {person.location}
                     </span>
-
                   </div>
-
                 )}
-
               </div>
 
-
-              {/* =================================================
-                  ABOUT
-              ================================================== */}
+              {/* ABOUT */}
 
               {person?.description && (
-
-                <section
-                  className="
-                    mb-9
-                  "
-                >
-
+                <section className="mb-9">
                   <h3
                     className="
                       text-xl
@@ -1144,34 +831,23 @@ export default function EntrepreneurModal({
                     About
                   </h3>
 
-
                   <p
                     className="
                       text-slate-600
                       leading-7
-                      text-base
                     "
                   >
                     {person.description}
                   </p>
-
                 </section>
-
               )}
 
-
               {/* =================================================
-                  WORK GALLERY
+                  WORK
               ================================================== */}
 
               {works.length > 0 && (
-
-                <section
-                  className="
-                    mb-9
-                  "
-                >
-
+                <section className="mb-9">
                   <div
                     className="
                       flex
@@ -1180,7 +856,6 @@ export default function EntrepreneurModal({
                       mb-4
                     "
                   >
-
                     <h3
                       className="
                         text-xl
@@ -1192,22 +867,13 @@ export default function EntrepreneurModal({
                       Their Work
                     </h3>
 
-
-                    <span
-                      className="
-                        text-sm
-                        text-slate-400
-                      "
-                    >
-                      {works.length}
-                      {" "}
-                      {works.length === 1
+                    <span className="text-sm text-slate-400">
+                      {Math.min(works.length, 3)}{" "}
+                      {Math.min(works.length, 3) === 1
                         ? "project"
                         : "projects"}
                     </span>
-
                   </div>
-
 
                   <div
                     className="
@@ -1217,136 +883,101 @@ export default function EntrepreneurModal({
                       gap-4
                     "
                   >
-
                     {works
                       .slice(0, 3)
-                      .map(
-                        (
-                          work,
-                          index
-                        ) => {
+                      .map((work, index) => {
+                        const image =
+                          typeof work === "string"
+                            ? work
+                            : work?.image ||
+                              work?.image_url;
 
-                          const image =
-                            typeof work ===
-                            "string"
-                              ? work
-                              : work?.image ||
-                                work?.image_url;
+                        if (!image) return null;
 
-                          if (!image) {
-                            return null;
-                          }
+                        const imageUrl =
+                          getImageUrl(image);
 
-                          const imageUrl =
-                            getImageUrl(
-                              image
-                            );
-
-                          return (
-
-                            <button
-                              key={
-                                work?.id ||
-                                index
-                              }
-                              type="button"
-                              onClick={() =>
-                                setLightbox(
-                                  imageUrl
-                                )
-                              }
+                        return (
+                          <button
+                            key={
+                              work?.id ||
+                              index
+                            }
+                            type="button"
+                            onClick={() =>
+                              setLightbox(
+                                imageUrl
+                              )
+                            }
+                            className="
+                              group
+                              relative
+                              aspect-square
+                              overflow-hidden
+                              rounded-2xl
+                              bg-slate-100
+                              shadow-sm
+                              hover:shadow-xl
+                              transition
+                            "
+                          >
+                            <img
+                              src={imageUrl}
+                              alt={`${person.name} work ${
+                                index + 1
+                              }`}
                               className="
-                                group
-                                relative
-                                aspect-square
-                                overflow-hidden
-                                rounded-2xl
-                                bg-slate-100
-                                shadow-sm
-                                hover:shadow-xl
-                                transition-all
-                                duration-300
+                                w-full
+                                h-full
+                                object-cover
+                                transition-transform
+                                duration-500
+                                group-hover:scale-105
+                              "
+                            />
+
+                            <div
+                              className="
+                                absolute
+                                inset-0
+                                bg-black/0
+                                group-hover:bg-black/20
+                                transition
+                              "
+                            />
+
+                            <div
+                              className="
+                                absolute
+                                bottom-3
+                                right-3
+                                opacity-0
+                                group-hover:opacity-100
+                                bg-white/90
+                                text-slate-900
+                                px-3
+                                py-1.5
+                                rounded-full
+                                text-xs
+                                font-semibold
+                                transition
                               "
                             >
-
-                              <img
-                                src={
-                                  imageUrl
-                                }
-                                alt={`
-                                  ${
-                                    person.name
-                                  }
-                                  work ${
-                                    index + 1
-                                  }
-                                `}
-                                className="
-                                  w-full
-                                  h-full
-                                  object-cover
-                                  transition-transform
-                                  duration-500
-                                  group-hover:scale-105
-                                "
-                              />
-
-                              <div
-                                className="
-                                  absolute
-                                  inset-0
-                                  bg-black/0
-                                  group-hover:bg-black/20
-                                  transition
-                                "
-                              />
-
-                              <div
-                                className="
-                                  absolute
-                                  bottom-3
-                                  right-3
-                                  opacity-0
-                                  group-hover:opacity-100
-                                  bg-white/90
-                                  text-slate-900
-                                  px-3
-                                  py-1.5
-                                  rounded-full
-                                  text-xs
-                                  font-semibold
-                                  transition
-                                "
-                              >
-                                View
-                              </div>
-
-                            </button>
-
-                          );
-
-                        }
-                      )}
-
+                              View
+                            </div>
+                          </button>
+                        );
+                      })}
                   </div>
-
                 </section>
-
               )}
 
-
               {/* =================================================
-                  VIDEO
+                  IMPROVED VIDEO SECTION
               ================================================== */}
 
               {videoUrl && (
-
-                <section
-                  className="
-                    mb-9
-                  "
-                >
-
+                <section className="mb-9">
                   <div
                     className="
                       flex
@@ -1354,9 +985,9 @@ export default function EntrepreneurModal({
                       justify-between
                       mb-4
                       gap-4
+                      flex-wrap
                     "
                   >
-
                     <h3
                       className="
                         text-xl
@@ -1367,8 +998,6 @@ export default function EntrepreneurModal({
                     >
                       Featured Video
                     </h3>
-
-                    {/* EXTERNAL VIDEO LINK */}
 
                     <a
                       href={videoUrl}
@@ -1382,181 +1011,108 @@ export default function EntrepreneurModal({
                         font-semibold
                         text-blue-600
                         hover:text-blue-800
-                        transition
                       "
                     >
                       {videoPlatformLabel}
-                      <FaExternalLinkAlt
-                        className="text-xs"
-                      />
+
+                      <FaExternalLinkAlt className="text-xs" />
                     </a>
-
                   </div>
-
 
                   {/* =================================================
                       YOUTUBE
                   ================================================== */}
 
                   {videoType === "youtube" && (
-
-                    <div
-                      className="
-                        relative
-                        w-full
-                        aspect-video
-                        rounded-2xl
-                        overflow-hidden
-                        bg-black
-                        shadow-lg
-                      "
-                    >
-
-                      <iframe
-                        className="
-                          w-full
-                          h-full
-                        "
-                        src={youtubeEmbedUrl}
-                        title={
-                          `${person.name} YouTube video`
-                        }
-                        allow="
-                          accelerometer;
-                          autoplay;
-                          clipboard-write;
-                          encrypted-media;
-                          gyroscope;
-                          picture-in-picture;
-                          web-share
-                        "
-                        allowFullScreen
-                      />
-
-                    </div>
-
+                    <>
+                      {youtubeEmbedUrl ? (
+                        <div
+                          className="
+                            relative
+                            w-full
+                            aspect-video
+                            rounded-2xl
+                            overflow-hidden
+                            bg-black
+                            shadow-lg
+                          "
+                        >
+                          <iframe
+                            className="w-full h-full"
+                            src={youtubeEmbedUrl}
+                            title={`${person.name} YouTube video`}
+                            allow="
+                              accelerometer;
+                              autoplay;
+                              clipboard-write;
+                              encrypted-media;
+                              gyroscope;
+                              picture-in-picture;
+                              web-share
+                            "
+                            allowFullScreen
+                          />
+                        </div>
+                      ) : (
+                        <ExternalVideoCard
+                          icon={<FaYoutube />}
+                          title="Watch this YouTube video"
+                          description="Open the original video on YouTube."
+                          url={videoUrl}
+                          buttonText="Watch on YouTube"
+                        />
+                      )}
+                    </>
                   )}
-
 
                   {/* =================================================
                       TIKTOK
                   ================================================== */}
 
                   {videoType === "tiktok" && (
-
-                    <div
-                      className="
-                        relative
-                        w-full
-                        aspect-video
-                        rounded-2xl
-                        overflow-hidden
-                        bg-black
-                        shadow-lg
-                      "
-                    >
-
+                    <>
                       {tiktokEmbedUrl ? (
-
-                        <iframe
-                          className="
-                            w-full
-                            h-full
-                          "
-                          src={tiktokEmbedUrl}
-                          title={
-                            `${person.name} TikTok video`
-                          }
-                          allow="
-                            autoplay;
-                            encrypted-media;
-                            fullscreen;
-                            picture-in-picture
-                          "
-                          allowFullScreen
-                        />
-
-                      ) : (
-
                         <div
                           className="
-                            absolute
-                            inset-0
-                            flex
-                            flex-col
-                            items-center
-                            justify-center
-                            text-white
-                            text-center
-                            p-6
+                            relative
+                            w-full
+                            aspect-video
+                            rounded-2xl
+                            overflow-hidden
+                            bg-black
+                            shadow-lg
                           "
                         >
-
-                          <FaTiktok
-                            className="
-                              text-5xl
-                              mb-4
+                          <iframe
+                            className="w-full h-full"
+                            src={tiktokEmbedUrl}
+                            title={`${person.name} TikTok video`}
+                            allow="
+                              autoplay;
+                              encrypted-media;
+                              fullscreen;
+                              picture-in-picture;
                             "
+                            allowFullScreen
                           />
-
-                          <p
-                            className="
-                              text-lg
-                              font-semibold
-                              mb-2
-                            "
-                          >
-                            View this TikTok video
-                          </p>
-
-                          <p
-                            className="
-                              text-sm
-                              text-slate-300
-                              mb-5
-                            "
-                          >
-                            Open the original video
-                            on TikTok.
-                          </p>
-
-                          <a
-                            href={videoUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="
-                              inline-flex
-                              items-center
-                              gap-2
-                              bg-white
-                              text-black
-                              px-5
-                              py-3
-                              rounded-xl
-                              font-semibold
-                              hover:bg-slate-200
-                              transition
-                            "
-                          >
-                            <FaPlay />
-                            Watch on TikTok
-                          </a>
-
                         </div>
-
+                      ) : (
+                        <ExternalVideoCard
+                          icon={<FaTiktok />}
+                          title="Watch this TikTok"
+                          description="Open the original video on TikTok."
+                          url={videoUrl}
+                          buttonText="Watch on TikTok"
+                        />
                       )}
-
-                    </div>
-
+                    </>
                   )}
 
-
                   {/* =================================================
-                      DIRECT MP4 / WEBM / OGG
+                      DIRECT VIDEO
                   ================================================== */}
 
                   {videoType === "direct" && (
-
                     <div
                       className="
                         relative
@@ -1568,7 +1124,6 @@ export default function EntrepreneurModal({
                         shadow-lg
                       "
                     >
-
                       <video
                         className="
                           w-full
@@ -1578,112 +1133,29 @@ export default function EntrepreneurModal({
                         controls
                         playsInline
                         preload="metadata"
+                        src={videoUrl}
                       >
-                        <source
-                          src={videoUrl}
-                        />
-
-                        Your browser does not
-                        support video playback.
+                        Your browser does not support
+                        video playback.
                       </video>
-
                     </div>
-
                   )}
 
-
                   {/* =================================================
-                      UNKNOWN / EXTERNAL VIDEO
+                      OTHER EXTERNAL VIDEO
                   ================================================== */}
 
                   {videoType === "external" && (
-
-                    <div
-                      className="
-                        relative
-                        w-full
-                        aspect-video
-                        rounded-2xl
-                        overflow-hidden
-                        bg-gradient-to-br
-                        from-slate-900
-                        to-slate-700
-                        shadow-lg
-                        flex
-                        items-center
-                        justify-center
-                        text-white
-                        p-6
-                      "
-                    >
-
-                      <div
-                        className="
-                          text-center
-                        "
-                      >
-
-                        <FaPlay
-                          className="
-                            mx-auto
-                            text-5xl
-                            mb-5
-                          "
-                        />
-
-                        <p
-                          className="
-                            text-xl
-                            font-bold
-                            mb-2
-                          "
-                        >
-                          Featured Video
-                        </p>
-
-                        <p
-                          className="
-                            text-sm
-                            text-slate-300
-                            mb-5
-                          "
-                        >
-                          This video is hosted
-                          externally.
-                        </p>
-
-                        <a
-                          href={videoUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="
-                            inline-flex
-                            items-center
-                            gap-2
-                            bg-white
-                            text-slate-900
-                            px-5
-                            py-3
-                            rounded-xl
-                            font-semibold
-                            hover:bg-slate-200
-                            transition
-                          "
-                        >
-                          <FaExternalLinkAlt />
-                          Watch Video
-                        </a>
-
-                      </div>
-
-                    </div>
-
+                    <ExternalVideoCard
+                      icon={<FaPlay />}
+                      title="Featured Video"
+                      description="This video is hosted externally."
+                      url={videoUrl}
+                      buttonText="Watch Video"
+                    />
                   )}
-
                 </section>
-
               )}
-
 
               {/* =================================================
                   SOCIAL / CONTACT
@@ -1695,7 +1167,6 @@ export default function EntrepreneurModal({
                 tiktok ||
                 youtube ||
                 website) && (
-
                 <section
                   className="
                     border-t
@@ -1703,7 +1174,6 @@ export default function EntrepreneurModal({
                     pt-7
                   "
                 >
-
                   <h3
                     className="
                       text-xl
@@ -1713,24 +1183,14 @@ export default function EntrepreneurModal({
                       mb-5
                     "
                   >
-                    Connect With{" "}
-                    {person.name}
+                    Connect With {person.name}
                   </h3>
 
-
-                  {/* WHATSAPP */}
-
                   {whatsappUrl && (
-
                     <a
-                      href={
-                        whatsappUrl
-                      }
+                      href={whatsappUrl}
                       target="_blank"
-                      rel="
-                        noreferrer
-                        noopener
-                      "
+                      rel="noopener noreferrer"
                       className="
                         flex
                         items-center
@@ -1744,29 +1204,16 @@ export default function EntrepreneurModal({
                         px-5
                         rounded-xl
                         font-bold
-                        shadow-sm
-                        hover:shadow-lg
-                        transition-all
-                        duration-200
                         mb-5
+                        transition
                       "
                     >
-
-                      <FaWhatsapp
-                        className="
-                          text-xl
-                        "
-                      />
+                      <FaWhatsapp className="text-xl" />
 
                       Contact Business
                       on WhatsApp
-
                     </a>
-
                   )}
-
-
-                  {/* SOCIAL ICONS */}
 
                   <div
                     className="
@@ -1775,187 +1222,68 @@ export default function EntrepreneurModal({
                       gap-3
                     "
                   >
-
                     {instagram && (
-
-                      <a
+                      <SocialLink
                         href={instagram}
-                        target="_blank"
-                        rel="
-                          noreferrer
-                          noopener
-                        "
-                        aria-label="Instagram"
-                        className="
-                          w-12
-                          h-12
-                          rounded-full
-                          bg-slate-100
-                          flex
-                          items-center
-                          justify-center
-                          text-slate-600
-                          text-xl
-                          hover:bg-pink-100
-                          hover:text-pink-500
-                          hover:scale-105
-                          transition
-                        "
+                        label="Instagram"
+                        className="hover:bg-pink-100 hover:text-pink-500"
                       >
                         <FaInstagram />
-                      </a>
-
+                      </SocialLink>
                     )}
-
 
                     {facebook && (
-
-                      <a
+                      <SocialLink
                         href={facebook}
-                        target="_blank"
-                        rel="
-                          noreferrer
-                          noopener
-                        "
-                        aria-label="Facebook"
-                        className="
-                          w-12
-                          h-12
-                          rounded-full
-                          bg-slate-100
-                          flex
-                          items-center
-                          justify-center
-                          text-slate-600
-                          text-xl
-                          hover:bg-blue-100
-                          hover:text-blue-600
-                          hover:scale-105
-                          transition
-                        "
+                        label="Facebook"
+                        className="hover:bg-blue-100 hover:text-blue-600"
                       >
                         <FaFacebook />
-                      </a>
-
+                      </SocialLink>
                     )}
-
 
                     {tiktok && (
-
-                      <a
+                      <SocialLink
                         href={tiktok}
-                        target="_blank"
-                        rel="
-                          noreferrer
-                          noopener
-                        "
-                        aria-label="TikTok"
-                        className="
-                          w-12
-                          h-12
-                          rounded-full
-                          bg-slate-100
-                          flex
-                          items-center
-                          justify-center
-                          text-slate-600
-                          text-xl
-                          hover:bg-slate-200
-                          hover:text-black
-                          hover:scale-105
-                          transition
-                        "
+                        label="TikTok"
+                        className="hover:bg-slate-200 hover:text-black"
                       >
                         <FaTiktok />
-                      </a>
-
+                      </SocialLink>
                     )}
-
 
                     {youtube && (
-
-                      <a
+                      <SocialLink
                         href={youtube}
-                        target="_blank"
-                        rel="
-                          noreferrer
-                          noopener
-                        "
-                        aria-label="YouTube"
-                        className="
-                          w-12
-                          h-12
-                          rounded-full
-                          bg-slate-100
-                          flex
-                          items-center
-                          justify-center
-                          text-slate-600
-                          text-xl
-                          hover:bg-red-100
-                          hover:text-red-600
-                          hover:scale-105
-                          transition
-                        "
+                        label="YouTube"
+                        className="hover:bg-red-100 hover:text-red-600"
                       >
                         <FaYoutube />
-                      </a>
-
+                      </SocialLink>
                     )}
-
 
                     {website && (
-
-                      <a
+                      <SocialLink
                         href={website}
-                        target="_blank"
-                        rel="
-                          noreferrer
-                          noopener
-                        "
-                        aria-label="Website"
-                        className="
-                          w-12
-                          h-12
-                          rounded-full
-                          bg-slate-100
-                          flex
-                          items-center
-                          justify-center
-                          text-slate-600
-                          text-xl
-                          hover:bg-green-100
-                          hover:text-green-600
-                          hover:scale-105
-                          transition
-                        "
+                        label="Website"
+                        className="hover:bg-green-100 hover:text-green-600"
                       >
                         <FaGlobe />
-                      </a>
-
+                      </SocialLink>
                     )}
-
                   </div>
-
                 </section>
-
               )}
-
             </div>
-
           </div>
-
         </div>
-
       </div>
-
 
       {/* =====================================================
           IMAGE LIGHTBOX
       ====================================================== */}
 
       {lightbox && (
-
         <div
           className="
             fixed
@@ -1968,16 +1296,11 @@ export default function EntrepreneurModal({
             justify-center
             p-4
           "
-          onClick={() =>
-            setLightbox(null)
-          }
+          onClick={() => setLightbox(null)}
         >
-
           <button
             type="button"
-            onClick={() =>
-              setLightbox(null)
-            }
+            onClick={() => setLightbox(null)}
             className="
               absolute
               top-5
@@ -1992,13 +1315,11 @@ export default function EntrepreneurModal({
               flex
               items-center
               justify-center
-              transition
             "
             aria-label="Close image"
           >
             <FaTimes />
           </button>
-
 
           <img
             src={lightbox}
@@ -2014,13 +1335,135 @@ export default function EntrepreneurModal({
               shadow-2xl
             "
           />
-
         </div>
-
       )}
-
     </>
-
   );
 }
 
+
+/* =========================================================
+   EXTERNAL VIDEO CARD
+========================================================= */
+
+function ExternalVideoCard({
+  icon,
+  title,
+  description,
+  url,
+  buttonText,
+}) {
+  return (
+    <div
+      className="
+        relative
+        w-full
+        aspect-video
+        rounded-2xl
+        overflow-hidden
+        bg-gradient-to-br
+        from-slate-900
+        to-slate-700
+        shadow-lg
+        flex
+        items-center
+        justify-center
+        text-white
+        p-6
+      "
+    >
+      <div className="text-center">
+        <div
+          className="
+            flex
+            justify-center
+            text-5xl
+            mb-5
+          "
+        >
+          {icon}
+        </div>
+
+        <p
+          className="
+            text-xl
+            font-bold
+            mb-2
+          "
+        >
+          {title}
+        </p>
+
+        <p
+          className="
+            text-sm
+            text-slate-300
+            mb-5
+          "
+        >
+          {description}
+        </p>
+
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="
+            inline-flex
+            items-center
+            gap-2
+            bg-white
+            text-slate-900
+            px-5
+            py-3
+            rounded-xl
+            font-semibold
+            hover:bg-slate-200
+            transition
+          "
+        >
+          <FaPlay />
+
+          {buttonText}
+        </a>
+      </div>
+    </div>
+  );
+}
+
+
+/* =========================================================
+   SOCIAL LINK
+========================================================= */
+
+function SocialLink({
+  href,
+  label,
+  children,
+  className = "",
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={label}
+      className={`
+        w-12
+        h-12
+        rounded-full
+        bg-slate-100
+        flex
+        items-center
+        justify-center
+        text-slate-600
+        text-xl
+        hover:scale-105
+        transition
+        ${className}
+      `}
+    >
+      {children}
+    </a>
+  );
+}
