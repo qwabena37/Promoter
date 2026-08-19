@@ -4,6 +4,7 @@ import React, {
 } from "react";
 
 import {
+  FaLinkedin,
   FaFacebook,
   FaInstagram,
   FaTiktok,
@@ -1239,6 +1240,16 @@ export default function EntrepreneurModal({
                         className="hover:bg-blue-100 hover:text-blue-600"
                       >
                         <FaFacebook />
+                      </SocialLink>
+                    )}
+                    
+                    {linkedin && (
+                      <SocialLink
+                        href={linkedin}
+                        label="LinkedIn"
+                        className="hover:bg-blue-100 hover:text-blue-600"
+                      >
+                        <FaLinkedin />
                       </SocialLink>
                     )}
 
