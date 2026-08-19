@@ -306,9 +306,9 @@ export default function EntrepreneurModal({
     socials?.facebook ||
     "";
 
-  const linkedIn =
-    person?.linkedIn ||
-    socials?.linkedIn ||
+  const linkedin =
+    person?.linkedin ||
+    socials?.linkedin ||
     "";
 
   const tiktok =
