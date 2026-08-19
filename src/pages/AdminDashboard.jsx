@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
@@ -14,6 +15,7 @@ import {
   FaSearch,
   FaTimes,
   FaImage,
+  FaLinkedin,
 } from "react-icons/fa";
 
 export default function AdminDashboard() {
@@ -30,6 +32,10 @@ export default function AdminDashboard() {
   const [editingEntrepreneur, setEditingEntrepreneur] =
     useState(null);
 
+  /* =========================================================
+     FORM DATA
+  ========================================================== */
+
   const [formData, setFormData] = useState({
     name: "",
     title: "",
@@ -41,7 +47,9 @@ export default function AdminDashboard() {
     facebook: "",
     tiktok: "",
     youtube: "",
+    linkedIn: "",
     website: "",
+
     featured: false,
 
     // Images
@@ -158,12 +166,15 @@ export default function AdminDashboard() {
       location: "",
       description: "",
       video: "",
+
       whatsapp: "",
       instagram: "",
       facebook: "",
       tiktok: "",
       youtube: "",
+      linkedIn: "",
       website: "",
+
       featured: false,
 
       profile_image: null,
@@ -196,15 +207,18 @@ export default function AdminDashboard() {
       location: person.location || "",
       description: person.description || "",
       video: person.video || "",
+
       whatsapp: person.whatsapp || "",
       instagram: person.instagram || "",
       facebook: person.facebook || "",
       tiktok: person.tiktok || "",
       youtube: person.youtube || "",
+      linkedIn: person.linkedIn || "",
       website: person.website || "",
+
       featured: Boolean(person.featured),
 
-      // New files are selected only if the admin wants
+      // New files are selected only if admin wants
       // to replace existing images.
       profile_image: null,
       work_image_1: null,
@@ -316,6 +330,21 @@ export default function AdminDashboard() {
         );
       }
 
+      /* =====================================================
+         LINKEDIN
+      ====================================================== */
+
+      if (formData.linkedin?.trim()) {
+        form.append(
+          "linkedin",
+          formData.linkedin.trim()
+        );
+      }
+
+      /* =====================================================
+         WEBSITE
+      ====================================================== */
+
       if (formData.website?.trim()) {
         form.append(
           "website",
@@ -334,19 +363,25 @@ export default function AdminDashboard() {
 
       /* =====================================================
          PROFILE IMAGE
+
+         FIXED:
+         Previous code checked formData.image,
+         but the actual state field is profile_image.
       ====================================================== */
 
-      if (formData.image instanceof File) {
-  console.log(
-    "Uploading profile image:",
-    formData.image.name
-  );
+      if (
+        formData.profile_image instanceof File
+      ) {
+        console.log(
+          "Uploading profile image:",
+          formData.profile_image.name
+        );
 
-  form.append(
-    "profile_image",
-    formData.image
-  );
-}
+        form.append(
+          "profile_image",
+          formData.profile_image
+        );
+      }
 
       /* =====================================================
          WORK IMAGE 1
@@ -427,7 +462,7 @@ export default function AdminDashboard() {
       }
 
       /* =====================================================
-         SAVE
+         API REQUEST
       ====================================================== */
 
       let response;
@@ -1051,8 +1086,6 @@ export default function AdminDashboard() {
           overflow-hidden
         ">
 
-          {/* HEADER */}
-
           <div className="
             p-6
             border-b
@@ -1302,6 +1335,7 @@ export default function AdminDashboard() {
                             <img
                               src={
                                 person.image ||
+                                person.profile_image ||
                                 "/placeholder.jpg"
                               }
                               alt={person.name}
@@ -1719,7 +1753,8 @@ export default function AdminDashboard() {
 
                   </div>
 
-                  {editingEntrepreneur?.image && (
+                  {(editingEntrepreneur?.image ||
+                    editingEntrepreneur?.profile_image) && (
                     <div className="
                       w-32
                       h-32
@@ -1731,7 +1766,8 @@ export default function AdminDashboard() {
                     ">
                       <img
                         src={
-                          editingEntrepreneur.image
+                          editingEntrepreneur.image ||
+                          editingEntrepreneur.profile_image
                         }
                         alt="Current profile"
                         className="
@@ -1745,7 +1781,7 @@ export default function AdminDashboard() {
 
                   <input
                     type="file"
-                    name="image"
+                    name="profile_image"
                     accept=".jpeg,.jpg,.png,.webp"
                     onChange={handleChange}
                     className="
@@ -2143,6 +2179,37 @@ export default function AdminDashboard() {
                     className="input-field"
                   />
 
+                  {/* LINKEDIN */}
+
+                  <div className="relative">
+
+                    <FaLinkedin
+                      className="
+                        absolute
+                        left-4
+                        top-1/2
+                        -translate-y-1/2
+                        text-blue-700
+                        text-lg
+                      "
+                    />
+
+                    <input
+                      type="url"
+                      name="linkedin"
+                      value={formData.linkedin}
+                      onChange={handleChange}
+                      placeholder="LinkedIn profile URL"
+                      className="
+                        input-field
+                        pl-11
+                      "
+                    />
+
+                  </div>
+
+                  {/* WEBSITE */}
+
                   <input
                     type="url"
                     name="website"
@@ -2153,6 +2220,15 @@ export default function AdminDashboard() {
                   />
 
                 </div>
+
+                <p className="
+                  text-xs
+                  text-slate-400
+                  mt-3
+                ">
+                  Add the entrepreneur's professional
+                  social media and website links.
+                </p>
 
               </div>
 

@@ -4,7 +4,7 @@ import React, {
 } from "react";
 
 import {
-  FaLinkedin,
+  FaLinkedIn,
   FaFacebook,
   FaInstagram,
   FaTiktok,
@@ -305,6 +305,12 @@ export default function EntrepreneurModal({
     person?.facebook ||
     socials?.facebook ||
     "";
+
+  const linkedin =
+  person?.linkedIn ||
+  socials?.linkedIn ||
+
+  "";
 
   const tiktok =
     person?.tiktok ||
@@ -1249,7 +1255,7 @@ export default function EntrepreneurModal({
                         label="LinkedIn"
                         className="hover:bg-blue-100 hover:text-blue-600"
                       >
-                        <FaLinkedin />
+                        <FaLinkedIn />
                       </SocialLink>
                     )}
 
