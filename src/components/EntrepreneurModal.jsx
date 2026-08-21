@@ -4,6 +4,7 @@ import React, {
 } from "react";
 
 import {
+  FaLinkedin,
   FaFacebook,
   FaInstagram,
   FaTiktok,
@@ -16,8 +17,6 @@ import {
   FaExternalLinkAlt,
   FaPlay,
 } from "react-icons/fa";
-
-import { FaLinkedin } from "react-icons/fa6";
 
 import api from "../services/api";
 
@@ -307,9 +306,10 @@ export default function EntrepreneurModal({
     socials?.facebook ||
     "";
   const linkedin = 
+    person?.linkedIn ||
     person?.linkedin || 
     socials?.linkedin || 
-    "";
+  "";
 
   const tiktok =
     person?.tiktok ||
