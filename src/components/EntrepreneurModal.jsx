@@ -1253,15 +1253,13 @@ socials?.linkedin_profile_url ||
                       </SocialLink>
                     )}
                     
-                    {linkedin && (
-                      <SocialLink
-                        href={linkedin} 
-                        label="LinkedIn"
-                        className="hover:bg-blue-100 hover:text-blue-600"
-                      >
-                        <FaLinkedin />
-                      </SocialLink>
-                    )}
+                    <SocialLink
+  href="https://www.linkedin.com"
+  label="LinkedIn"
+  className="hover:bg-blue-100 hover:text-blue-600"
+>
+  <FaLinkedin />
+</SocialLink>
 
                     {tiktok && (
                       <SocialLink
