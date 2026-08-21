@@ -305,10 +305,10 @@ export default function EntrepreneurModal({
     person?.facebook ||
     socials?.facebook ||
     "";
-const linkedin = 
-person?.linkedin || 
-socials?.linkedin || 
-"";
+  const linkedin = 
+    person?.linkedin || 
+    socials?.linkedin || 
+    "";
 
   const tiktok =
     person?.tiktok ||
