@@ -311,9 +311,9 @@ person?.linkedin_profile ||
 person?.linkedin_profile_url || 
 socials?.linkedin || 
 socials?.linkedin_url ||
- socials?.linkedin_profile ||
-  socials?.linkedin_profile_url || 
-  "";
+socials?.linkedin_profile ||
+socials?.linkedin_profile_url || 
+"";
 
   const tiktok =
     person?.tiktok ||
