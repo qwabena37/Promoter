@@ -305,14 +305,9 @@ export default function EntrepreneurModal({
     person?.facebook ||
     socials?.facebook ||
     "";
-const linkedin = person?.linkedin || 
-person?.linkedin_url || 
-person?.linkedin_profile || 
-person?.linkedin_profile_url || 
+const linkedin = 
+person?.linkedin || 
 socials?.linkedin || 
-socials?.linkedin_url ||
-socials?.linkedin_profile ||
-socials?.linkedin_profile_url || 
 "";
 
   const tiktok =
@@ -1253,13 +1248,15 @@ socials?.linkedin_profile_url ||
                       </SocialLink>
                     )}
                     
-                    <SocialLink
-  href="https://www.linkedin.com"
-  label="LinkedIn"
-  className="hover:bg-blue-100 hover:text-blue-600"
->
-  <FaLinkedin />
-</SocialLink>
+                    {linkedin && (
+  <SocialLink
+    href={linkedin}
+    label="LinkedIn"
+    className="hover:bg-blue-100 hover:text-blue-600"
+  >
+    <FaLinkedin />
+  </SocialLink>
+)}
 
                     {tiktok && (
                       <SocialLink
