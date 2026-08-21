@@ -18,6 +18,8 @@ import {
   FaPlay,
 } from "react-icons/fa";
 
+import { FaLinkedin } from "react-icons/fa6";
+
 import api from "../services/api";
 
 export default function EntrepreneurModal({
