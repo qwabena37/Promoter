@@ -552,20 +552,19 @@ I have completed the registration form. I will attach my profile picture and thr
       ========================================================== */}
       {showJoinForm && (
         <div
-          className="
-            fixed
-            inset-0
-            z-[100]
-            bg-slate-900/70
-            backdrop-blur-sm
-            flex
-            items-center
-            justify-center
-            p-4
-            overflow-y-auto
-          "
-          onClick={closeJoinForm}
-        >
+  className="
+    fixed
+    inset-0
+    z-[9999]
+    bg-slate-900/70
+    backdrop-blur-sm
+    overflow-y-auto
+    px-4
+    py-6
+    md:py-10
+  "
+  onClick={closeJoinForm}
+>
           <div
             className="
               relative
