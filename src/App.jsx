@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
+import ScrollToTop from "./components/ScrollToTop"
 import Auth from "./pages/Auth";
 import Contact from "./pages/Contact";
 import Vision from "./pages/Vision";
@@ -10,6 +11,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/contact" element={<Contact />} />
