@@ -10,7 +10,12 @@ import EntrepreneurModal from "../components/EntrepreneurModal";
 
 export default function Home() {
   const [selected, setSelected] = useState(null);
+
+  // All entrepreneurs returned from the API
   const [entrepreneurs, setEntrepreneurs] = useState([]);
+
+  // Entrepreneurs currently displayed on homepage
+  const [displayedEntrepreneurs, setDisplayedEntrepreneurs] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState(false);
@@ -18,6 +23,34 @@ export default function Home() {
   // Counter states
   const [entreCount, setEntreCount] = useState(0);
   const [bizCount, setBizCount] = useState(0);
+
+  /*
+   * =====================================================
+   * RANDOM ENTREPRENEUR SELECTION
+   * =====================================================
+   */
+
+  const getRandomEntrepreneurs = (data) => {
+    if (!Array.isArray(data) || data.length === 0) {
+      return [];
+    }
+
+    // Copy array so we don't mutate the original API data
+    const shuffled = [...data];
+
+    // Fisher-Yates shuffle
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+
+      [shuffled[i], shuffled[j]] = [
+        shuffled[j],
+        shuffled[i],
+      ];
+    }
+
+    // Display maximum 21 entrepreneurs
+    return shuffled.slice(0, 21);
+  };
 
   /*
    * =====================================================
@@ -44,6 +77,12 @@ export default function Home() {
           : response.data?.results || [];
 
         setEntrepreneurs(data);
+
+        // Select the first random group
+        setDisplayedEntrepreneurs(
+          getRandomEntrepreneurs(data)
+        );
+
         setApiError(false);
       } catch (error) {
         console.error(
@@ -63,6 +102,7 @@ export default function Home() {
 
         setApiError(true);
         setEntrepreneurs([]);
+        setDisplayedEntrepreneurs([]);
       } finally {
         setLoading(false);
       }
@@ -70,6 +110,30 @@ export default function Home() {
 
     fetchEntrepreneurs();
   }, []);
+
+  /*
+   * =====================================================
+   * ROTATE ENTREPRENEURS EVERY 30 SECONDS
+   * =====================================================
+   */
+
+  useEffect(() => {
+    if (entrepreneurs.length <= 21) {
+      return;
+    }
+
+    const rotationInterval = setInterval(() => {
+      console.log(
+        "Rotating entrepreneur selection..."
+      );
+
+      setDisplayedEntrepreneurs(
+        getRandomEntrepreneurs(entrepreneurs)
+      );
+    }, 30000);
+
+    return () => clearInterval(rotationInterval);
+  }, [entrepreneurs]);
 
   /*
    * =====================================================
@@ -101,6 +165,9 @@ export default function Home() {
   /*
    * =====================================================
    * ANIMATED COUNTERS
+   *
+   * These use the TOTAL number of entrepreneurs,
+   * not just the 21 currently displayed.
    * =====================================================
    */
 
@@ -169,47 +236,68 @@ export default function Home() {
       <Hero />
 
       {/* =====================================================
-          FEATURED ENTREPRENEURS
+          ENTREPRENEURS
       ====================================================== */}
 
-      <section className="
-        py-16
-        px-6
-        md:px-8
-        max-w-7xl
-        mx-auto
-      ">
+      <section
+        className="
+          py-12
+          sm:py-14
+          md:py-16
+          px-3
+          sm:px-4
+          md:px-8
+          max-w-7xl
+          mx-auto
+        "
+      >
 
-        {/* SECTION HEADER */}
+        {/* =====================================================
+            SECTION HEADER
+        ====================================================== */}
 
-        <div className="
-          text-center
-          mb-12
-        ">
+        <div
+          className="
+            text-center
+            mb-8
+            sm:mb-10
+            md:mb-12
+          "
+        >
 
-          <h2 className="
-            text-4xl
-            font-bold
-            text-slate-900
-          ">
+          <h2
+            className="
+              text-3xl
+              sm:text-4xl
+              font-bold
+              text-slate-900
+            "
+          >
             Our Young Entrepreneurs
           </h2>
 
-          <div className="
-            w-24
-            h-1
-            bg-amber-400
-            mx-auto
-            mt-4
-            rounded-full
-          " />
+          <div
+            className="
+              w-24
+              h-1
+              bg-amber-400
+              mx-auto
+              mt-4
+              rounded-full
+            "
+          />
 
-          <p className="
-            mt-4
-            text-slate-600
-            max-w-2xl
-            mx-auto
-          ">
+          <p
+            className="
+              mt-4
+              text-sm
+              sm:text-base
+              text-slate-600
+              max-w-2xl
+              mx-auto
+              px-2
+            "
+          >
             Meet inspiring young business leaders
             who are creating impact, driving
             innovation, and shaping the future
@@ -224,26 +312,32 @@ export default function Home() {
 
         {loading && (
 
-          <div className="
-            text-center
-            py-16
-          ">
+          <div
+            className="
+              text-center
+              py-16
+            "
+          >
 
-            <div className="
-              animate-spin
-              rounded-full
-              h-14
-              w-14
-              border-b-4
-              border-amber-500
-              mx-auto
-            " />
+            <div
+              className="
+                animate-spin
+                rounded-full
+                h-14
+                w-14
+                border-b-4
+                border-amber-500
+                mx-auto
+              "
+            />
 
-            <p className="
-              mt-5
-              text-slate-600
-              font-medium
-            ">
+            <p
+              className="
+                mt-5
+                text-slate-600
+                font-medium
+              "
+            >
               Loading entrepreneurs...
             </p>
 
@@ -257,32 +351,36 @@ export default function Home() {
 
         {!loading && apiError && (
 
-          <div className="
-            text-center
-            py-16
-          ">
+          <div
+            className="
+              text-center
+              py-16
+            "
+          >
 
-            <div className="
-              max-w-lg
-              mx-auto
-              bg-white
-              rounded-xl
-              shadow-md
-              p-8
-            ">
+            <div
+              className="
+                max-w-lg
+                mx-auto
+                bg-white
+                rounded-xl
+                shadow-md
+                p-8
+              "
+            >
 
-              <h3 className="
-                text-2xl
-                font-semibold
-                text-slate-800
-                mb-3
-              ">
+              <h3
+                className="
+                  text-2xl
+                  font-semibold
+                  text-slate-800
+                  mb-3
+                "
+              >
                 Entrepreneurs are currently unavailable
               </h3>
 
-              <p className="
-                text-slate-500
-              ">
+              <p className="text-slate-500">
                 We couldn't connect to the
                 entrepreneurs database.
                 Please check back shortly.
@@ -302,32 +400,40 @@ export default function Home() {
           !apiError &&
           entrepreneurs.length === 0 && (
 
-            <div className="
-              text-center
-              py-16
-            ">
+            <div
+              className="
+                text-center
+                py-16
+              "
+            >
 
-              <div className="
-                max-w-lg
-                mx-auto
-                bg-white
-                rounded-xl
-                shadow-md
-                p-8
-              ">
+              <div
+                className="
+                  max-w-lg
+                  mx-auto
+                  bg-white
+                  rounded-xl
+                  shadow-md
+                  p-8
+                "
+              >
 
-                <h3 className="
-                  text-2xl
-                  font-semibold
-                  text-slate-700
-                ">
+                <h3
+                  className="
+                    text-2xl
+                    font-semibold
+                    text-slate-700
+                  "
+                >
                   No entrepreneurs available yet.
                 </h3>
 
-                <p className="
-                  text-slate-500
-                  mt-3
-                ">
+                <p
+                  className="
+                    text-slate-500
+                    mt-3
+                  "
+                >
                   New entrepreneur profiles will
                   appear here once they are added
                   by the administrator.
@@ -345,26 +451,73 @@ export default function Home() {
 
         {!loading &&
           !apiError &&
-          entrepreneurs.length > 0 && (
+          displayedEntrepreneurs.length > 0 && (
 
-            <div className="
-              grid
-              md:grid-cols-2
-              lg:grid-cols-3
-              gap-8
-            ">
+            <div
+              className="
+                grid
+                grid-cols-2
+                md:grid-cols-2
+                lg:grid-cols-3
+                gap-3
+                sm:gap-5
+                md:gap-6
+                lg:gap-8
+              "
+            >
 
-              {entrepreneurs.map((person) => (
+              {displayedEntrepreneurs.map(
+                (person) => (
 
-                <EntrepreneurCard
-                  key={person.id}
-                  person={person}
-                  onClick={() =>
-                    handleOpenProfile(person)
-                  }
-                />
+                  <EntrepreneurCard
+                    key={person.id}
+                    person={person}
+                    onClick={() =>
+                      handleOpenProfile(person)
+                    }
+                  />
 
-              ))}
+                )
+              )}
+
+            </div>
+
+          )}
+
+        {/* =====================================================
+            ROTATION INDICATOR
+        ====================================================== */}
+
+        {!loading &&
+          !apiError &&
+          entrepreneurs.length > 21 && (
+
+            <div
+              className="
+                flex
+                items-center
+                justify-center
+                gap-2
+                mt-8
+                text-xs
+                sm:text-sm
+                text-slate-400
+              "
+            >
+
+              <span
+                className="
+                  w-2
+                  h-2
+                  rounded-full
+                  bg-amber-400
+                  animate-pulse
+                "
+              />
+
+              <span>
+                Entrepreneurs rotate every 30 seconds
+              </span>
 
             </div>
 
@@ -390,116 +543,129 @@ export default function Home() {
       ====================================================== */}
 
       <section
-  className="
-    bg-gradient-to-r
-    from-slate-900
-    via-blue-900
-    to-slate-800
-    text-white
-    py-10
-    sm:py-12
-    md:py-16
-  "
->
-  <div
-    className="
-      max-w-5xl
-      mx-auto
-      text-center
-      px-4
-      sm:px-6
-    "
-  >
-    <h2
-      className="
-        text-2xl
-        sm:text-3xl
-        font-bold
-        mb-7
-        sm:mb-10
-      "
-    >
-      Our Growing Impact
-    </h2>
+        className="
+          bg-gradient-to-r
+          from-slate-900
+          via-blue-900
+          to-slate-800
+          text-white
+          py-10
+          sm:py-12
+          md:py-16
+        "
+      >
 
-    <div
-      className="
-        flex
-        flex-row
-        justify-center
-        items-start
-        gap-8
-        sm:gap-12
-      "
-    >
-      {/* ENTREPRENEURS */}
-
-      <div>
-        <h3
+        <div
           className="
-            text-3xl
-            sm:text-4xl
-            md:text-5xl
-            font-bold
-            text-amber-400
-          "
-        >
-          {entreCount}+
-        </h3>
-
-        <p
-          className="
-            mt-2
-            sm:mt-3
-            text-xs
-            sm:text-sm
-            md:text-base
-            text-slate-200
-            leading-tight
-            max-w-[130px]
-            sm:max-w-none
+            max-w-5xl
             mx-auto
+            text-center
+            px-4
+            sm:px-6
           "
         >
-          Young Entrepreneurs Exposed
-        </p>
-      </div>
 
-      {/* BUSINESSES */}
+          <h2
+            className="
+              text-2xl
+              sm:text-3xl
+              font-bold
+              mb-7
+              sm:mb-10
+            "
+          >
+            Our Growing Impact
+          </h2>
 
-      <div>
-        <h3
-          className="
-            text-3xl
-            sm:text-4xl
-            md:text-5xl
-            font-bold
-            text-amber-400
-          "
-        >
-          {bizCount}+
-        </h3>
+          <div
+            className="
+              flex
+              flex-row
+              justify-center
+              items-start
+              gap-8
+              sm:gap-12
+            "
+          >
 
-        <p
-          className="
-            mt-2
-            sm:mt-3
-            text-xs
-            sm:text-sm
-            md:text-base
-            text-slate-200
-            leading-tight
-            max-w-[130px]
-            sm:max-w-none
-            mx-auto
-          "
-        >
-          Businesses Promoted
-        </p>
-      </div>
-    </div>
-  </div>
-</section>
+            {/* =================================================
+                ENTREPRENEURS
+            ================================================== */}
+
+            <div>
+
+              <h3
+                className="
+                  text-3xl
+                  sm:text-4xl
+                  md:text-5xl
+                  font-bold
+                  text-amber-400
+                "
+              >
+                {entreCount}+
+              </h3>
+
+              <p
+                className="
+                  mt-2
+                  sm:mt-3
+                  text-xs
+                  sm:text-sm
+                  md:text-base
+                  text-slate-200
+                  leading-tight
+                  max-w-[130px]
+                  sm:max-w-none
+                  mx-auto
+                "
+              >
+                Young Entrepreneurs Exposed
+              </p>
+
+            </div>
+
+            {/* =================================================
+                BUSINESSES
+            ================================================== */}
+
+            <div>
+
+              <h3
+                className="
+                  text-3xl
+                  sm:text-4xl
+                  md:text-5xl
+                  font-bold
+                  text-amber-400
+                "
+              >
+                {bizCount}+
+              </h3>
+
+              <p
+                className="
+                  mt-2
+                  sm:mt-3
+                  text-xs
+                  sm:text-sm
+                  md:text-base
+                  text-slate-200
+                  leading-tight
+                  max-w-[130px]
+                  sm:max-w-none
+                  mx-auto
+                "
+              >
+                Businesses Promoted
+              </p>
+
+            </div>
+
+          </div>
+        </div>
+
+      </section>
 
       {/* =====================================================
           FOOTER
@@ -510,3 +676,4 @@ export default function Home() {
     </div>
   );
 }
+
