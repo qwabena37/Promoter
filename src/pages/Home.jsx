@@ -539,6 +539,134 @@ export default function Home() {
       )}
 
       {/* =====================================================
+    TESTIMONIALS
+===================================================== */}
+
+<section
+  className="
+    py-16
+    bg-white
+  "
+>
+  <div
+    className="
+      max-w-6xl
+      mx-auto
+      px-4
+      sm:px-6
+    "
+  >
+
+    <div className="text-center mb-12">
+
+      <h2
+        className="
+          text-3xl
+          sm:text-4xl
+          font-bold
+          text-slate-900
+        "
+      >
+        What People Are Saying
+      </h2>
+
+      <div
+        className="
+          w-24
+          h-1
+          bg-amber-400
+          mx-auto
+          mt-4
+          rounded-full
+        "
+      />
+
+      <p
+        className="
+          mt-4
+          text-slate-600
+          max-w-2xl
+          mx-auto
+        "
+      >
+        Real experiences from people who have
+        connected with entrepreneurs through
+        our platform.
+      </p>
+
+    </div>
+
+    <div
+      className="
+        grid
+        md:grid-cols-3
+        gap-6
+      "
+    >
+
+      <div
+        className="
+          bg-slate-50
+          rounded-2xl
+          p-6
+          shadow-sm
+        "
+      >
+        <p className="text-slate-600 italic">
+          "I found an excellent graphic designer
+          through Young Entrepreneurs Hub.
+          Professional and reliable."
+        </p>
+
+        <h4 className="mt-4 font-bold">
+          — Church Member
+        </h4>
+      </div>
+
+      <div
+        className="
+          bg-slate-50
+          rounded-2xl
+          p-6
+          shadow-sm
+        "
+      >
+        <p className="text-slate-600 italic">
+          "The platform helped me discover
+          businesses within our church
+          community that I never knew existed."
+        </p>
+
+        <h4 className="mt-4 font-bold">
+          — Business Owner
+        </h4>
+      </div>
+
+      <div
+        className="
+          bg-slate-50
+          rounded-2xl
+          p-6
+          shadow-sm
+        "
+      >
+        <p className="text-slate-600 italic">
+          "A simple way to support fellow church
+          members while receiving quality
+          services."
+        </p>
+
+        <h4 className="mt-4 font-bold">
+          — Community Member
+        </h4>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+      {/* =====================================================
           STATS SECTION
       ====================================================== */}
 
