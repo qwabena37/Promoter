@@ -342,8 +342,7 @@ export default function Explore() {
                     setSearchTerm(e.target.value)
                   }
                   placeholder="
-                    Search by name, business,
-                    skill or service...
+                    Search by name, business, skill, field, location or service...
                   "
                   className="
                     w-full
