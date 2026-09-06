@@ -330,13 +330,29 @@ export default function EntrepreneurModal({
      WHATSAPP
   ========================================================= */
 
-  const whatsappNumber = String(
-    whatsapp
-  ).replace(/[^0-9]/g, "");
+  /* =========================================================
+   WHATSAPP
+========================================================= */
 
-  const whatsappUrl = whatsappNumber
-    ? `https://wa.me/${whatsappNumber}`
-    : "";
+const whatsappNumber = String(
+  whatsapp
+).replace(/[^0-9]/g, "");
+
+const whatsappMessage = `Hi ${person?.name || "there"} 👋,
+
+I found your business on Young Entrepreneurs Hub and I would like to make an inquiry about your business.
+
+I would like to know more about your products/services and how I can make a purchase or work with you.
+
+Please get back to me when you can.
+
+Thank you!`;
+
+const whatsappUrl = whatsappNumber
+  ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+      whatsappMessage
+    )}`
+  : "";
 
   /* =========================================================
      IMAGE URL
