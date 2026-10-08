@@ -22,8 +22,7 @@ api.interceptors.request.use(
     }
 
     // FormData requests must NOT use application/json.
-    // Let the browser/Axios generate multipart/form-data
-    // together with the required boundary.
+    // Let Axios generate multipart/form-data with the boundary.
     if (config.data instanceof FormData) {
       delete config.headers["Content-Type"];
     }
@@ -44,9 +43,7 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    /*
-     * No response means network/server connection problem.
-     */
+    // No response means network/server connection problem.
     if (!error.response) {
       return Promise.reject(error);
     }
@@ -57,8 +54,8 @@ api.interceptors.response.use(
     if (
       error.response.status === 401 &&
       !originalRequest._retry &&
-      !originalRequest.url?.includes("/token/") &&
-      !originalRequest.url?.includes("/token/refresh/")
+      !originalRequest.url?.includes("/auth/login/") &&
+      !originalRequest.url?.includes("/auth/refresh/")
     ) {
       originalRequest._retry = true;
 
@@ -67,9 +64,7 @@ api.interceptors.response.use(
       if (!refresh) {
         localStorage.removeItem("access");
         localStorage.removeItem("refresh");
-
         window.location.href = "/admin/login";
-
         return Promise.reject(error);
       }
 
@@ -77,7 +72,7 @@ api.interceptors.response.use(
         console.log("Access token expired. Refreshing...");
 
         const response = await axios.post(
-          `${API_URL}/token/refresh/`,
+          `${API_URL}/auth/refresh/`,
           {
             refresh,
           },
@@ -92,10 +87,8 @@ api.interceptors.response.use(
 
         localStorage.setItem("access", newAccess);
 
-        /*
-         * If SimpleJWT rotates refresh tokens,
-         * save the new refresh token.
-         */
+        // If SimpleJWT rotates refresh tokens,
+        // save the new refresh token.
         if (response.data.refresh) {
           localStorage.setItem(
             "refresh",
@@ -103,9 +96,7 @@ api.interceptors.response.use(
           );
         }
 
-        /*
-         * Attach the new token to the original request.
-         */
+        // Attach the new token to the original request.
         originalRequest.headers.Authorization =
           `Bearer ${newAccess}`;
 
