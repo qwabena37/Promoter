@@ -59,7 +59,7 @@ export default function AdminLogin() {
         https://promoter-backend-v2jk.onrender.com/api/token/
       */
 
-      const response = await api.post("/token/", {
+      const response = await api.post("/auth/login/", {
         username: formData.username,
         password: formData.password,
       });
