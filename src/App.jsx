@@ -20,7 +20,7 @@ function App() {
         <Route path="/auth" element={<Auth />} />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route element={<PrivateRoute />}>
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Route>
       </Routes>
     </Router>
